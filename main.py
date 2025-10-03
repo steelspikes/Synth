@@ -7,7 +7,6 @@ from Envelope import Envelope
 import numpy as np
 from scipy.io import wavfile
 import json
-from Reverb import Reverb
 from NoiseOscillator import NoiseOscillator
 
 for pp in ['parameters.json']:
