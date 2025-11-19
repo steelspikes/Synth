@@ -8,11 +8,31 @@ import numpy as np
 from scipy.io import wavfile
 import json
 from NoiseOscillator import NoiseOscillator
+from AdditiveOscilator import AdditiveOscillator
+import sys
+import os
+import shutil
 
-for pp in ['parameters.json']:
-    with open(pp, 'r') as archivo:
-        parameters = json.load(archivo)
+def delete_exports():
+    folder = "exports"
 
+    for elemento in os.listdir(folder):
+        route = os.path.join(folder, elemento)
+        if os.path.isfile(route) or os.path.islink(route):
+            os.unlink(route)
+        else:
+            shutil.rmtree(route)
+
+file_name = sys.argv[1]
+
+delete_exports()
+
+with open(f'presets/{file_name}', 'r') as archivo:
+    arrParameters = json.load(archivo)
+
+i = 0
+
+for parameters in arrParameters:
     # Catch Parameters ################################
     sample_rate = parameters['general']['sample_rate']
     duration = parameters['general']['duration']
@@ -28,10 +48,26 @@ for pp in ['parameters.json']:
 
     osc_noise = parameters['osc_noise']
 
+    add_osc_params = parameters['add_osc']
+
     #################################################33
 
     lfo1 = LFO(rate_hz=lfo1_params.get('rate'), shape=lfo1_params.get('shape'))
     lfo2 = LFO(rate_hz=lfo2_params.get('rate'), shape=lfo2_params.get('shape'))
+
+    addosc = AdditiveOscillator( # Agregar LFO y Envelopes
+        sample_rate=sample_rate,
+        duration=duration,
+        base_freq=add_osc_params.get('base_frequency'),
+        volume=add_osc_params.get('volume'),
+        partials=add_osc_params.get('partials'),
+        lfo1_instance=lfo1,
+        lfo2_instance=lfo2,
+        volume_mod_depth=add_osc_params.get('volume_mod_depth'),
+        pitch_mod_depth=add_osc_params.get('pitch_mod_depth'),
+        lfo_choose=add_osc_params.get('lfo_choose')
+    )
+    out_addosc = addosc.process()
 
     osc1 = Oscillator(
         shape=get_osc_param(1,'shape'), 
@@ -101,7 +137,7 @@ for pp in ['parameters.json']:
     )
     out_noise = oscnoise.process()
 
-    out_osc = out_osc1 + out_osc2 + out_osc3 + out_osc4 + out_noise
+    out_osc = out_addosc + out_osc1 + out_osc2 + out_osc3 + out_osc4 + out_noise
 
     envelope = Envelope(attack=filter_env_params.get('attack'), decay=filter_env_params.get('decay'), sustain=filter_env_params.get('sustain'), release=filter_env_params.get('release'))
     envelope_signal = envelope.process(duration)
@@ -114,6 +150,7 @@ for pp in ['parameters.json']:
         lfo2_instance=lfo2,
         lfo_choose=filter_params.get('lfo_choose'),
         envelope=envelope,
+        envelope_depth=filter_params.get('envelope_depth'),
         cutoff_mod_depth=filter_params.get('cutoff_mod_depth')
     )
     out = filter1.process(out_osc)
@@ -123,58 +160,6 @@ for pp in ['parameters.json']:
 
     out = out * envelope_amp_signal
 
-    # print(len(out) / 44100)
+    wavfile.write(f"exports/sound{i}.wav", sample_rate, np.int16(out * 32767))
 
-    # reverb = Reverb()
-    # out = reverb.process(out)
-
-    # out = out / np.max(np.abs(out))
-
-    # wavfile.write("audio_output.wav", 44100, np.int16(out * 32767))
-
-    # plt.plot(out)
-    # plt.show()
-    # plt.pause(0.01)
-    # plt.cla()
-
-    #################################
-    # N = len(out)
-
-    # # Transformada de Fourier
-    # fft_data = np.fft.fft(out)
-    # fft_freq = np.fft.fftfreq(N, d=1/sample_rate)
-
-    # # Nos quedamos con la mitad positiva
-    # mask = fft_freq >= 0
-    # fft_data = np.abs(fft_data[mask])
-    # fft_freq = fft_freq[mask]
-
-    # # Graficar
-    # # plt.figure(figsize=(10, 6))
-    # plt.plot(fft_freq, fft_data)
-    # # plt.title("Espectro de Fourier del audio")
-    # # plt.xlabel("Frecuencia (Hz)")
-    # # plt.ylabel("Magnitud")
-    # plt.xlim(0, sample_rate/2)  # hasta Nyquist
-    # plt.pause(0.04)
-    # plt.cla()
-    #############################################
-
-
-
-
-    ##############################################
-
-    # Graficar espectrograma
-    # plt.figure(figsize=(10,6))
-    # plt.specgram(out, NFFT=1024, Fs=sample_rate, noverlap=512, cmap='viridis')
-    # plt.xlabel("Tiempo (s)")
-    # plt.ylabel("Frecuencia (Hz)")
-    # plt.title("Espectrograma")
-    # plt.colorbar(label="Magnitud (dB)")
-    # plt.show()
-
-    ##############################################
-
-    sd.play(out, sample_rate)
-    sd.wait()
+    i+=1

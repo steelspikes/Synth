@@ -82,13 +82,14 @@ def biquad_process_jit(input_wave, modulated_cutoff, modulated_q, sample_rate, f
 
 
 class BiquadFilter:
-    def __init__(self, sample_rate=44100, base_cutoff_hz=1000, base_q=0.707, filter_type=0, lfo1_instance: LFO = None, lfo2_instance: LFO = None, envelope: Envelope = None, cutoff_mod_depth = 0, lfo_choose = 0):
+    def __init__(self, sample_rate=44100, base_cutoff_hz=1000, base_q=0.707, filter_type=0, lfo1_instance: LFO = None, lfo2_instance: LFO = None, envelope_depth = 0, envelope: Envelope = None, cutoff_mod_depth = 0, lfo_choose = 0):
         self.sample_rate = sample_rate
         self.base_cutoff_hz = base_cutoff_hz
         self.base_q = base_q
         self.filter_type = filter_type
         self.lfo_instance = lfo1_instance if lfo_choose == 0 else lfo2_instance
         self.envelope = envelope
+        self.envelope_depth = envelope_depth
         self.cutoff_mod_depth = cutoff_mod_depth
         
         # Mapeo de string a código numérico
@@ -108,7 +109,7 @@ class BiquadFilter:
         # Añadir modulación de la envolvente
         if self.envelope is not None:
             env_signal = self.envelope.process(num_samples / self.sample_rate) # de 0 a 1
-            modulated_cutoff += (env_signal * rango_hz * 1)
+            modulated_cutoff += (env_signal * rango_hz * self.envelope_depth)
             
         # Añadir modulación del LFO
         if self.lfo_instance is not None:

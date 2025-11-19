@@ -2,6 +2,7 @@ import numpy as np
 from scipy import signal
 
 def create_morphed_wave(shape, phase):
+    # print(shape)
     if shape <= 1.0:
         sine_wave = np.sin(phase)
         triangle_wave = signal.sawtooth(phase, 0.5)
