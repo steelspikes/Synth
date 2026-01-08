@@ -9,42 +9,42 @@ class Envelope:
         self.release = release
 
     def process(self, total_duration_sec):
-        """Genera el array de la envolvente ADSR para una duración fija."""
-        # 1. Convertir tiempos a muestras
-        total_samples = int(total_duration_sec * self.sample_rate)
-        attack_samples = int(self.attack * self.sample_rate)
-        decay_samples = int(self.decay * self.sample_rate)
-        release_samples = int(self.release * self.sample_rate)
+        presets = self.attack.shape[0]
+        n_samples = int(self.sample_rate * total_duration_sec)
+        x = np.linspace(0, 1.0, n_samples, dtype=np.float32)
+        x = np.expand_dims(x, axis=0)
+        x = np.broadcast_to(x, (presets, n_samples))
 
-        # Calcular el tiempo disponible para sustain
-        ads_samples = attack_samples + decay_samples + release_samples
-        
-        # Si la duración total es muy corta, ajustar las fases
-        if ads_samples >= total_samples:
-            # Distribuir proporcionalmente entre attack, decay y release
-            total_ads_time = self.attack + self.decay + self.release
-            attack_samples = int((self.attack / total_ads_time) * total_samples)
-            decay_samples = int((self.decay / total_ads_time) * total_samples)
-            release_samples = total_samples - (attack_samples + decay_samples)
-            sustain_samples = 0
-        else:
-            sustain_samples = total_samples - ads_samples
+        rel_attack = self.attack / total_duration_sec
+        rel_decay = self.decay / total_duration_sec
+        rel_release = self.release / total_duration_sec
+        sus_level = self.sustain
 
-        # 2. Construir las fases de la envolvente
-        attack = np.linspace(0, 1.0, attack_samples)
-        decay = np.linspace(1.0, self.sustain, decay_samples)
-        sustain = np.full(sustain_samples, self.sustain)
-        # release = np.linspace(self.sustain, 0, release_samples)
+        rel_attack = np.expand_dims(rel_attack, axis=1).astype(np.float32)
+        rel_decay = np.expand_dims(rel_decay, axis=1).astype(np.float32)
+        rel_release = np.expand_dims(rel_release, axis=1).astype(np.float32)
+        sus_level = np.expand_dims(sus_level, axis=1).astype(np.float32)
 
-        if release_samples > 0:
-            n = np.arange(release_samples)
-            tau = release_samples / 5  # Ajusta la velocidad del decaimiento exponencial
-            release = self.sustain * np.exp(-n / tau)
-        else:
-            release = np.array([])
+        # Duración relativa de sustain para llenar lo que queda
+        rel_sustain = 1.0 - (rel_attack + rel_decay + rel_release)
+        rel_note_off = rel_attack + rel_decay + rel_sustain
 
-        # 3. Concatenar todas las partes
-        envelope = np.concatenate((attack, decay, sustain, release))
+        eps = 1e-6
 
-        # 4. Asegurar la longitud exacta (por si hay errores de redondeo)
-        return envelope[:total_samples]
+        # ATTACK
+        attack_curve = x / (rel_attack + eps)
+        attack_curve = np.clip(attack_curve, max=1.0)
+
+        # DECAY
+        decay_curve = (x - rel_attack) * (sus_level - 1.0) / (rel_decay + eps)
+        decay_curve = np.clip(decay_curve, min=(sus_level - 1.0), max=0.0)
+
+        # RELEASE
+        release_curve = (x - rel_note_off) * (-sus_level / (rel_release + eps))
+        release_curve = np.clip(release_curve, min=-sus_level, max=0.0)
+
+        # SUMA
+        envelope = attack_curve + decay_curve + release_curve
+        envelope = np.clip(envelope, min=0.0, max=1.0)
+
+        return envelope

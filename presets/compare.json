@@ -22,7 +22,7 @@
             "lfo_choose": 0
         },
         "osc1": {
-            "shape": 0.25,
+            "shape": 0.95,
             "volume": 1,
             "phase": 0,
             "frequency": 440,

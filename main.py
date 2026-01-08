@@ -1,165 +1,196 @@
-import sounddevice as sd
-import matplotlib.pyplot as plt
 from Oscillator import Oscillator
-from BiquadFilter import BiquadFilter
-from LFO import LFO
-from Envelope import Envelope
 import numpy as np
-from scipy.io import wavfile
-import json
+# import matplotlib.pyplot as plt
+import sounddevice as sd
+from Utils import load_parameters_file, plot_spectrum_linear
+from LFO import LFO
+from BiquadFilter import BiquadFilter
 from NoiseOscillator import NoiseOscillator
-from AdditiveOscilator import AdditiveOscillator
-import sys
-import os
-import shutil
+from Envelope import Envelope
+import time
+import json
 
-def delete_exports():
-    folder = "exports"
+DURATION = 2
+SAMPLE_RATE = 44100
 
-    for elemento in os.listdir(folder):
-        route = os.path.join(folder, elemento)
-        if os.path.isfile(route) or os.path.islink(route):
-            os.unlink(route)
-        else:
-            shutil.rmtree(route)
+NUM_PRESETS = 100
 
-file_name = sys.argv[1]
+(
+    osc1_shape,
+    osc1_phase,
+    osc1_volume,
+    osc1_freq,
+    osc1_vdepth,
+    osc1_pdepth,
 
-delete_exports()
+    osc2_shape,
+    osc2_phase,
+    osc2_volume,
+    osc2_freq,
+    osc2_vdepth,
+    osc2_pdepth,
 
-with open(f'presets/{file_name}', 'r') as archivo:
-    arrParameters = json.load(archivo)
+    osc3_shape,
+    osc3_phase,
+    osc3_volume,
+    osc3_freq,
+    osc3_vdepth,
+    osc3_pdepth,
 
-i = 0
+    osc4_shape,
+    osc4_phase,
+    osc4_volume,
+    osc4_freq,
+    osc4_vdepth,
+    osc4_pdepth,
 
-for parameters in arrParameters:
-    # Catch Parameters ################################
-    sample_rate = parameters['general']['sample_rate']
-    duration = parameters['general']['duration']
+    oscnoise_volume,
 
-    def get_osc_param(index, param):
-        return parameters['osc'+str(index)][param]
+    base_cutoff_hz,
+    base_q,
+    filter_type, # 0 = HPF, 1 = BPF, 2 = LPF
+    envelope_depth,
+    cutoff_mod_depth,
 
-    amp_env_params = parameters['amplitude_envelope']
-    filter_env_params = parameters['filter_envelope']
-    filter_params = parameters['filter']
-    lfo1_params = parameters['lfo1']
-    lfo2_params = parameters['lfo2']
+    lfo1_rate,
+    lfo1_shape,
 
-    osc_noise = parameters['osc_noise']
+    lfo2_rate,
+    lfo2_shape,
 
-    add_osc_params = parameters['add_osc']
+    envelope_decay,
+    envelope_attack,
+    envelope_sustain,
+    envelope_release,
 
-    #################################################33
+    filter_envelope_attack,
+    filter_envelope_decay,    
+    filter_envelope_sustain,
+    filter_envelope_release
+) = load_parameters_file()
 
-    lfo1 = LFO(rate_hz=lfo1_params.get('rate'), shape=lfo1_params.get('shape'))
-    lfo2 = LFO(rate_hz=lfo2_params.get('rate'), shape=lfo2_params.get('shape'))
+print('start')
 
-    addosc = AdditiveOscillator( # Agregar LFO y Envelopes
-        sample_rate=sample_rate,
-        duration=duration,
-        base_freq=add_osc_params.get('base_frequency'),
-        volume=add_osc_params.get('volume'),
-        partials=add_osc_params.get('partials'),
-        lfo1_instance=lfo1,
-        lfo2_instance=lfo2,
-        volume_mod_depth=add_osc_params.get('volume_mod_depth'),
-        pitch_mod_depth=add_osc_params.get('pitch_mod_depth'),
-        lfo_choose=add_osc_params.get('lfo_choose')
-    )
-    out_addosc = addosc.process()
+lfo1 = LFO(rate_hz=lfo1_rate, shape=lfo1_shape)
+lfo2 = LFO(rate_hz=lfo2_rate, shape=lfo2_shape)
 
-    osc1 = Oscillator(
-        shape=get_osc_param(1,'shape'), 
-        phase=get_osc_param(1,'phase'), 
-        volume=get_osc_param(1,'volume'), 
-        initial_freq=get_osc_param(1,'frequency'), 
-        lfo1_instance=lfo1,
-        lfo2_instance=lfo2,
-        sample_rate=sample_rate, 
-        duration=duration,
-        volume_mod_depth=get_osc_param(1,'volume_mod_depth'),
-        pitch_mod_depth=get_osc_param(1,'pitch_mod_depth'),
-        lfo_choose=get_osc_param(1,'lfo_choose')
-    )
-    out_osc1 = osc1.process()
+lfo_signal = lfo1.process(int(SAMPLE_RATE * DURATION))
 
-    osc2 = Oscillator(
-        shape=get_osc_param(2,'shape'), 
-        phase=get_osc_param(2,'phase'), 
-        volume=get_osc_param(2,'volume'), 
-        initial_freq=get_osc_param(2,'frequency'), 
-        lfo1_instance=lfo1,
-        lfo2_instance=lfo2, 
-        sample_rate=sample_rate, 
-        duration=duration,
-        volume_mod_depth=get_osc_param(2,'volume_mod_depth'),
-        pitch_mod_depth=get_osc_param(2,'pitch_mod_depth'),
-        lfo_choose=get_osc_param(2,'lfo_choose')
-    )
-    out_osc2 = osc2.process()
+osc1 = Oscillator(
+    shape=osc1_shape, 
+    phase=osc1_phase, 
+    volume=osc1_volume, 
+    initial_freq=osc1_freq, 
+    lfo_signal=lfo_signal,
+    sample_rate=SAMPLE_RATE, 
+    duration=DURATION,
+    volume_mod_depth=osc1_vdepth,
+    pitch_mod_depth=osc1_pdepth
+)
 
-    osc3 = Oscillator(
-        shape=get_osc_param(3,'shape'), 
-        phase=get_osc_param(3,'phase'), 
-        volume=get_osc_param(3,'volume'), 
-        initial_freq=get_osc_param(3,'frequency'), 
-        lfo1_instance=lfo1,
-        lfo2_instance=lfo2, 
-        sample_rate=sample_rate, 
-        duration=duration,
-        volume_mod_depth=get_osc_param(3,'volume_mod_depth'),
-        pitch_mod_depth=get_osc_param(3,'pitch_mod_depth'),
-        lfo_choose=get_osc_param(3,'lfo_choose')
-    )
-    out_osc3 = osc3.process()
+osc2 = Oscillator(
+    shape=osc2_shape, 
+    phase=osc2_phase, 
+    volume=osc2_volume, 
+    initial_freq=osc2_freq, 
+    lfo_signal=lfo_signal,
+    sample_rate=SAMPLE_RATE, 
+    duration=DURATION,
+    volume_mod_depth=osc2_vdepth,
+    pitch_mod_depth=osc2_pdepth
+)
 
-    osc4 = Oscillator(
-        shape=get_osc_param(4,'shape'), 
-        phase=get_osc_param(4,'phase'), 
-        volume=get_osc_param(4,'volume'), 
-        initial_freq=get_osc_param(4,'frequency'), 
-        lfo1_instance=lfo1,
-        lfo2_instance=lfo2, 
-        sample_rate=sample_rate, 
-        duration=duration,
-        volume_mod_depth=get_osc_param(4,'volume_mod_depth'),
-        pitch_mod_depth=get_osc_param(4,'pitch_mod_depth'),
-        lfo_choose=get_osc_param(4,'lfo_choose')
-    )
-    out_osc4 = osc4.process()
+osc3 = Oscillator(
+    shape=osc3_shape, 
+    phase=osc3_phase, 
+    volume=osc3_volume, 
+    initial_freq=osc3_freq, 
+    lfo_signal=lfo_signal,
+    sample_rate=SAMPLE_RATE, 
+    duration=DURATION,
+    volume_mod_depth=osc3_vdepth,
+    pitch_mod_depth=osc3_pdepth
+)
 
-    oscnoise = NoiseOscillator(
-        shape=osc_noise.get('shape'), 
-        volume=osc_noise.get('volume'),
-        sample_rate=sample_rate, 
-        duration=duration
-    )
-    out_noise = oscnoise.process()
+osc4 = Oscillator(
+    shape=osc4_shape, 
+    phase=osc4_phase, 
+    volume=osc4_volume, 
+    initial_freq=osc4_freq, 
+    lfo_signal=lfo_signal,
+    sample_rate=SAMPLE_RATE, 
+    duration=DURATION,
+    volume_mod_depth=osc4_vdepth,
+    pitch_mod_depth=osc4_pdepth
+)
 
-    out_osc = out_addosc + out_osc1 + out_osc2 + out_osc3 + out_osc4 + out_noise
+oscnoise = NoiseOscillator(
+    volume=oscnoise_volume,
+    sample_rate=SAMPLE_RATE, 
+    duration=DURATION
+)
 
-    envelope = Envelope(attack=filter_env_params.get('attack'), decay=filter_env_params.get('decay'), sustain=filter_env_params.get('sustain'), release=filter_env_params.get('release'))
-    envelope_signal = envelope.process(duration)
+envelope_filter = Envelope(
+    attack=filter_envelope_attack, 
+    decay=filter_envelope_decay,
+    sustain=filter_envelope_sustain, 
+    release=filter_envelope_release
+)
 
-    filter1 = BiquadFilter(
-        base_cutoff_hz=filter_params.get('cutoff'), 
-        filter_type=filter_params.get('type'), 
-        base_q=filter_params.get('q'),
-        lfo1_instance=lfo1,
-        lfo2_instance=lfo2,
-        lfo_choose=filter_params.get('lfo_choose'),
-        envelope=envelope,
-        envelope_depth=filter_params.get('envelope_depth'),
-        cutoff_mod_depth=filter_params.get('cutoff_mod_depth')
-    )
-    out = filter1.process(out_osc)
+biquad_filter = BiquadFilter(
+    base_cutoff_hz=base_cutoff_hz, 
+    filter_type=filter_type, 
+    base_q=base_q,
+    lfo_instance=lfo2,
+    envelope=envelope_filter,
+    envelope_depth=envelope_depth,
+    cutoff_mod_depth=cutoff_mod_depth
+)
 
-    envelope_amp = Envelope(attack=amp_env_params.get('attack'), decay=amp_env_params.get('decay'), sustain=amp_env_params.get('sustain'), release=amp_env_params.get('release'))
-    envelope_amp_signal = envelope_amp.process(duration)
+envelope_amp = Envelope(
+    attack=envelope_attack, 
+    decay=envelope_decay,
+    sustain=envelope_sustain, 
+    release=envelope_release
+)
 
-    out = out * envelope_amp_signal
+out = osc1.process() + osc2.process() + osc3.process() + osc4.process() + oscnoise.process()
+out = biquad_filter.process(out)
 
-    wavfile.write(f"exports/sound{i}.wav", sample_rate, np.int16(out * 32767))
+envelope_amp_signal = envelope_amp.process(DURATION)
+out = out * envelope_amp_signal
 
-    i+=1
+print('End')
+
+out_np = out
+
+out_np = out_np / np.max(np.abs(out_np))
+
+for i in out_np:
+    # import matplotlib.pyplot as plt
+    # plt.plot(i)
+    # plt.show()
+
+    sd.play(i, samplerate=44_100)
+    sd.wait()
+
+    sd.play(i, samplerate=44_100)
+    sd.wait()
+
+    # i = np.array(i)
+
+    # n_fft = 1024
+    # hop_length = 256
+
+    # spectrogram_transform = T.Spectrogram(n_fft=n_fft, hop_length=hop_length, power=2.0)
+    # audio_batch = i.unsqueeze(0)  # añadir dimensión batch
+    # spec = spectrogram_transform(audio_batch)  # [batch, freq_bins, time_frames]
+
+    # # --- 3. Mostrar ---
+    # plt.figure(figsize=(8,4))
+    # plt.imshow(20 * np.log10(spec[0] + 1e-6).numpy(), origin='lower', aspect='auto', cmap='magma')
+    # plt.xlabel("Frames")
+    # plt.ylabel("Frecuencia bin")
+    # plt.title("Espectrograma de ejemplo")
+    # plt.colorbar(label='dB')
+    # plt.show()

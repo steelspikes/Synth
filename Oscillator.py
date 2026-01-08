@@ -1,73 +1,71 @@
-import numpy as np
-import matplotlib.pyplot as plt
-from scipy import signal
-import sounddevice as sd 
+# import matplotlib.pyplot as plt
 from Utils import create_morphed_wave
-from Utils import denormalize
+import numpy as np
 
 class Oscillator:
-    def __init__(self, sample_rate = 44100, duration = 2.0, volume = 0, shape = 0, initial_freq = 440, phase = 0, lfo1_instance = 0, lfo2_instance = 0, volume_mod_depth=0, pitch_mod_depth=0, lfo_choose = 0):
+    def __init__(self, sample_rate = 44100, duration = 2.0, volume = 0, shape = 0, initial_freq = 440, phase = 0, lfo_signal = None, volume_mod_depth=0, pitch_mod_depth=0):
         self.sample_rate = sample_rate
         self.duration = duration
-        self.shape = denormalize(shape, 0, 4)
-        self.initial_freq = initial_freq
+        self.shape = shape.astype(np.float32)
+        self.initial_freq = initial_freq.astype(np.float32)
         self.pulse_width = 0
-        self.phase = phase
-        self.lfo_instance = lfo1_instance if lfo_choose == 0 else lfo2_instance
-        self.volume = volume
-        self.volume_mod_depth = volume_mod_depth
-        self.pitch_mod_depth = pitch_mod_depth
+        self.phase = phase.astype(np.float32)
+        self.volume = volume.astype(np.float32)
+        self.volume_mod_depth = volume_mod_depth.astype(np.float32)
+        self.pitch_mod_depth = pitch_mod_depth.astype(np.float32)
 
-    def modulate(self, depth):
+        self.lfo_signal = lfo_signal
+
+    def modulate_freq(self, depth):
+        presets = self.shape.shape[0]
         num_samples = int(self.sample_rate * self.duration)
 
-        if self.lfo_instance is not None:
-            # 1. Generar la señal del LFO (va de -1 a 1)
-            lfo_signal = self.lfo_instance.process(num_samples)
-            
-            # 2. Re-escalar el LFO para que vaya de 0 a 1
-            # Esto es clave para que module la amplitud correctamente
-            modulator = (lfo_signal + 1) / 2
-            
-            # 3. Aplicar la profundidad de la modulación
-            # Asumimos que tienes un self.amp_lfo_depth (de 0 a 1)
-            # depth = self.lfo_instance.depth
-            final_modulator = (modulator * depth) + (1 - depth)
+        if self.lfo_signal is not None:
+            octave_range = depth * 1.0
+            mod_factor = np.pow(2.0, self.lfo_signal * octave_range)
 
-            # 4. El volumen ahora es un array dinámico
-            return final_modulator
+            return mod_factor
 
-        return np.ones(num_samples)
+        result = np.ones(num_samples)
+        result = np.expand_dims(result, axis=0)
+        return np.broadcast_to(result, (presets, num_samples))
+    
+    def modulate_volume(self, depth):
+        presets = self.shape.shape[0]
+        num_samples = int(self.sample_rate * self.duration)
+
+        if self.lfo_signal is not None:
+            lfo_unipolar = (self.lfo_signal + 1.0) / 2.0
+            return 1.0 - (depth * (1.0 - lfo_unipolar))
+
+        result = np.ones(num_samples)
+        result = np.expand_dims(result, axis=0)
+        return np.broadcast_to(result, (presets, num_samples))
 
     def create_osc(self, freq):
-        t = np.linspace(0., self.duration, int(self.sample_rate * self.duration), endpoint=False)
+        presets = freq.shape[0]
+
+        t = np.arange(0, int(self.sample_rate * self.duration), dtype=np.float32) / self.sample_rate
+        t = np.expand_dims(t, axis=0)
+        t = np.broadcast_to(t, (presets, t.shape[1]))
         
-        phase_offset_radians = self.phase * 2 * np.pi
+        phase_offset_radians = np.clip(self.phase) * 2 * np.pi
+        phase_offset_radians = np.expand_dims(phase_offset_radians, axis=1)
 
-        base_phase = 2 * np.pi * freq * t
+        freq_hz = np.exp(freq)
+        freq_hz = np.expand_dims(freq_hz, axis=1)
 
-        # if self.lfo_instance.dest == 'pitch':
-        freq = freq * self.modulate(self.pitch_mod_depth)
-        dt = t[1] - t[0]
-        base_phase = 2 * np.pi * np.cumsum(freq) * dt
+        freq_hz = freq_hz * self.modulate_freq(np.expand_dims(self.pitch_mod_depth, axis=1))
+        dt = t[:,1] - t[:,0]
+        dt = np.expand_dims(dt, axis=1)
 
-        # 2. Aplicar el offset a la fase de la onda
-        
+        base_phase = 2 * np.pi * np.cumsum(freq_hz, axis=1) * dt
+
         phase = base_phase + phase_offset_radians
-
-        # Usamos la duración definida en el constructor
-        t = np.linspace(0., self.duration, int(self.sample_rate * self.duration), endpoint=False)
-
-        # Nos aseguramos que el valor de 'shape' esté en el rango correcto
-        shape = np.clip(self.shape, 0, 4)
     
-        # --- Transición: Seno -> Triángulo (shape 0 a 1) ---
-        return create_morphed_wave(shape, phase)    
+        return create_morphed_wave(np.expand_dims(self.shape, axis=1), phase)
     
     def process(self):
         waveform = self.create_osc(self.initial_freq)
-
-        # if self.lfo_instance.dest == 'volume':
-        waveform = waveform * self.modulate(self.volume_mod_depth)
-
-        return waveform * self.volume
+        waveform = waveform * self.modulate_volume(np.expand_dims(self.volume_mod_depth, axis=1))
+        return waveform * np.expand_dims(self.volume, axis=1)
