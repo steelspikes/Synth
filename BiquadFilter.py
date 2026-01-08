@@ -100,8 +100,8 @@ class BiquadFilter:
 
         modulated_cutoff = np.clip(modulated_cutoff, min=20.0, max=20_000)
 
-        import matplotlib.pyplot as plt
-        plt.plot(modulated_cutoff[0])
-        plt.show()
+        # import matplotlib.pyplot as plt
+        # plt.plot(modulated_cutoff[0])
+        # plt.show()
        
         return biquad_process_multi_preset(input_wave, modulated_cutoff, self.base_q, self.filter_type, self.sample_rate)

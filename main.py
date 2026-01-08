@@ -173,24 +173,3 @@ for i in out_np:
 
     sd.play(i, samplerate=44_100)
     sd.wait()
-
-    sd.play(i, samplerate=44_100)
-    sd.wait()
-
-    # i = np.array(i)
-
-    # n_fft = 1024
-    # hop_length = 256
-
-    # spectrogram_transform = T.Spectrogram(n_fft=n_fft, hop_length=hop_length, power=2.0)
-    # audio_batch = i.unsqueeze(0)  # añadir dimensión batch
-    # spec = spectrogram_transform(audio_batch)  # [batch, freq_bins, time_frames]
-
-    # # --- 3. Mostrar ---
-    # plt.figure(figsize=(8,4))
-    # plt.imshow(20 * np.log10(spec[0] + 1e-6).numpy(), origin='lower', aspect='auto', cmap='magma')
-    # plt.xlabel("Frames")
-    # plt.ylabel("Frecuencia bin")
-    # plt.title("Espectrograma de ejemplo")
-    # plt.colorbar(label='dB')
-    # plt.show()
