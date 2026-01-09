@@ -162,7 +162,7 @@ def load_parameters_file():
     filter_envelope_sustain = []
     filter_envelope_release = []
 
-    for preset in parameters_file:
+    for preset in [parameters_file[0]]*1:
         osc1_shape.append(preset['osc1']['shape'])
         osc1_phase.append(preset['osc1']['phase'])
         osc1_volume.append(preset['osc1']['volume'])
