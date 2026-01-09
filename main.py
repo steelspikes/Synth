@@ -160,7 +160,7 @@ def ejecuta_proceso(params):
 
     acum = []
 
-    for i in range(500):
+    for i in range(100):
         # print('start')
 
         out = osc1.process() + osc2.process() + osc3.process() + osc4.process() + oscnoise.process()
