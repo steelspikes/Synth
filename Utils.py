@@ -162,7 +162,7 @@ def load_parameters_file():
     filter_envelope_sustain = []
     filter_envelope_release = []
 
-    for preset in [parameters_file[0]]*1:
+    for preset in [parameters_file[0]]*100:
         osc1_shape.append(preset['osc1']['shape'])
         osc1_phase.append(preset['osc1']['phase'])
         osc1_volume.append(preset['osc1']['volume'])
@@ -215,56 +215,56 @@ def load_parameters_file():
         filter_envelope_sustain.append(preset['filter_envelope']['sustain'])
         filter_envelope_release.append(preset['filter_envelope']['release'])
 
-    return (
-        np.array(osc1_shape),
-        np.array(osc1_phase),
-        np.array(osc1_volume),
-        np.array(osc1_freq),
-        np.array(osc1_vdepth),
-        np.array(osc1_pdepth),
+    return {
+        'osc1_shape': np.array(osc1_shape),
+        'osc1_phase': np.array(osc1_phase),
+        'osc1_volume': np.array(osc1_volume),
+        'osc1_freq': np.array(osc1_freq),
+        'osc1_vdepth': np.array(osc1_vdepth),
+        'osc1_pdepth': np.array(osc1_pdepth),
 
-        np.array(osc2_shape),
-        np.array(osc2_phase),
-        np.array(osc2_volume),
-        np.array(osc2_freq),
-        np.array(osc2_vdepth),
-        np.array(osc2_pdepth),
+        'osc2_shape': np.array(osc2_shape),
+        'osc2_phase': np.array(osc2_phase),
+        'osc2_volume': np.array(osc2_volume),
+        'osc2_freq': np.array(osc2_freq),
+        'osc2_vdepth': np.array(osc2_vdepth),
+        'osc2_pdepth': np.array(osc2_pdepth),
 
-        np.array(osc3_shape),
-        np.array(osc3_phase),
-        np.array(osc3_volume),
-        np.array(osc3_freq),
-        np.array(osc3_vdepth),
-        np.array(osc3_pdepth),
+        'osc3_shape': np.array(osc3_shape),
+        'osc3_phase': np.array(osc3_phase),
+        'osc3_volume': np.array(osc3_volume),
+        'osc3_freq': np.array(osc3_freq),
+        'osc3_vdepth': np.array(osc3_vdepth),
+        'osc3_pdepth': np.array(osc3_pdepth),
 
-        np.array(osc4_shape),
-        np.array(osc4_phase),
-        np.array(osc4_volume),
-        np.array(osc4_freq),
-        np.array(osc4_vdepth),
-        np.array(osc4_pdepth),
+        'osc4_shape': np.array(osc4_shape),
+        'osc4_phase': np.array(osc4_phase),
+        'osc4_volume': np.array(osc4_volume),
+        'osc4_freq': np.array(osc4_freq),
+        'osc4_vdepth': np.array(osc4_vdepth),
+        'osc4_pdepth': np.array(osc4_pdepth),
 
-        np.array(oscnoise_volume),
+        'oscnoise_volume': np.array(oscnoise_volume),
 
-        np.array(base_cutoff_hz),
-        np.array(base_q),
-        np.array(filter_type),
-        np.array(envelope_depth),
-        np.array(cutoff_mod_depth),
+        'base_cutoff_hz': np.array(base_cutoff_hz),
+        'base_q': np.array(base_q),
+        'filter_type': np.array(filter_type),
+        'envelope_depth': np.array(envelope_depth),
+        'cutoff_mod_depth': np.array(cutoff_mod_depth),
 
-        np.array(lfo1_rate),
-        np.array(lfo1_shape),
+        'lfo1_rate': np.array(lfo1_rate),
+        'lfo1_shape': np.array(lfo1_shape),
 
-        np.array(lfo2_rate),
-        np.array(lfo2_shape),
+        'lfo2_rate': np.array(lfo2_rate),
+        'lfo2_shape': np.array(lfo2_shape),
 
-        np.array(envelope_decay),
-        np.array(envelope_attack),
-        np.array(envelope_sustain),
-        np.array(envelope_release),
+        'envelope_decay': np.array(envelope_decay),
+        'envelope_attack': np.array(envelope_attack),
+        'envelope_sustain': np.array(envelope_sustain),
+        'envelope_release': np.array(envelope_release),
 
-        np.array(filter_envelope_attack),
-        np.array(filter_envelope_decay),
-        np.array(filter_envelope_sustain),
-        np.array(filter_envelope_release)
-    )
+        'filter_envelope_attack': np.array(filter_envelope_attack),
+        'filter_envelope_decay': np.array(filter_envelope_decay),
+        'filter_envelope_sustain': np.array(filter_envelope_sustain),
+        'filter_envelope_release': np.array(filter_envelope_release)
+    }
