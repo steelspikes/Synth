@@ -9,21 +9,13 @@ class Envelope:
         self.release = release
 
     def process(self, total_duration_sec):
-        presets = self.attack.shape[0]
         n_samples = int(self.sample_rate * total_duration_sec)
         x = np.linspace(0, 1.0, n_samples, dtype=np.float32)
-        x = np.expand_dims(x, axis=0)
-        x = np.broadcast_to(x, (presets, n_samples))
 
         rel_attack = self.attack / total_duration_sec
         rel_decay = self.decay / total_duration_sec
         rel_release = self.release / total_duration_sec
         sus_level = self.sustain
-
-        rel_attack = np.expand_dims(rel_attack, axis=1).astype(np.float32)
-        rel_decay = np.expand_dims(rel_decay, axis=1).astype(np.float32)
-        rel_release = np.expand_dims(rel_release, axis=1).astype(np.float32)
-        sus_level = np.expand_dims(sus_level, axis=1).astype(np.float32)
 
         # Duración relativa de sustain para llenar lo que queda
         rel_sustain = 1.0 - (rel_attack + rel_decay + rel_release)

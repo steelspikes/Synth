@@ -2,31 +2,23 @@ import numpy as np
 import matplotlib.pyplot as plt
 import json
 
-def create_morphed_wave(morph_param, base_phase):
-    # return get_sine_wave(base_phase)
-    base_phase = base_phase.astype(np.float32)
-    morph_param = morph_param.astype(np.float32)
-    
-    presets = morph_param.shape[0]
+def create_morphed_wave(morph_param, base_phase): 
     num_waves = 5
     centers = np.linspace(0, num_waves - 1, num_waves, dtype=np.float32)
-    centers = np.expand_dims(centers, axis=0)
-    centers = np.broadcast_to(centers, (presets, num_waves))
 
     dists = np.abs(morph_param - centers)
 
     weights = np.maximum(0, 1.0 - dists)
 
-    morphed_wave = np.broadcast_to(np.zeros_like(base_phase), (presets, base_phase.shape[1])).copy()
+    morphed_wave = np.zeros_like(base_phase)
     
-    w_sine = np.expand_dims(weights[:, 0], axis=1)
+    w_sine = weights[0]
     
     if np.any(w_sine > 0):
-        # print(morphed_wave.shape, w_sine.shape, get_sine_wave(base_phase).shape)
         morphed_wave += w_sine * get_sine_wave(base_phase)
 
-    w_tri = np.expand_dims(weights[:, 1], axis=1)
-    w_saw = np.expand_dims(weights[:, 2], axis=1)
+    w_tri = weights[1]
+    w_saw = weights[2]
 
     if np.any(w_tri > 0) or np.any(w_saw > 0):
         saw_raw = get_sawtooth_wave(base_phase)
@@ -38,7 +30,7 @@ def create_morphed_wave(morph_param, base_phase):
         if np.any(w_tri > 0):
             morphed_wave += w_tri * tri_raw   
 
-    w_sq = np.expand_dims(weights[:, 3], axis=1)
+    w_sq = weights[3]
     if np.any(w_sq > 0):
         morphed_wave += w_sq * get_square_wave(base_phase, duty=0.5)
 
@@ -49,7 +41,7 @@ def create_morphed_wave(morph_param, base_phase):
     if np.any(alpha > 0.001):
         MIDDLE = 0.5
         w_last = weights[:, 4] 
-        duty = np.expand_dims(MIDDLE - (w_last * MIDDLE), axis=1)
+        duty = MIDDLE - (w_last * MIDDLE)
         
         # Generar pulse variable
         pulse_wave = get_square_wave(base_phase, duty=duty)
@@ -162,7 +154,7 @@ def load_parameters_file():
     filter_envelope_sustain = []
     filter_envelope_release = []
 
-    for preset in [parameters_file[0]]*1:
+    for preset in parameters_file:
         osc1_shape.append(preset['osc1']['shape'])
         osc1_phase.append(preset['osc1']['phase'])
         osc1_volume.append(preset['osc1']['volume'])
@@ -216,55 +208,46 @@ def load_parameters_file():
         filter_envelope_release.append(preset['filter_envelope']['release'])
 
     return (
-        np.array(osc1_shape),
-        np.array(osc1_phase),
-        np.array(osc1_volume),
-        np.array(osc1_freq),
-        np.array(osc1_vdepth),
-        np.array(osc1_pdepth),
-
-        np.array(osc2_shape),
-        np.array(osc2_phase),
-        np.array(osc2_volume),
-        np.array(osc2_freq),
-        np.array(osc2_vdepth),
-        np.array(osc2_pdepth),
-
-        np.array(osc3_shape),
-        np.array(osc3_phase),
-        np.array(osc3_volume),
-        np.array(osc3_freq),
-        np.array(osc3_vdepth),
-        np.array(osc3_pdepth),
-
-        np.array(osc4_shape),
-        np.array(osc4_phase),
-        np.array(osc4_volume),
-        np.array(osc4_freq),
-        np.array(osc4_vdepth),
-        np.array(osc4_pdepth),
-
-        np.array(oscnoise_volume),
-
-        np.array(base_cutoff_hz),
-        np.array(base_q),
-        np.array(filter_type),
-        np.array(envelope_depth),
-        np.array(cutoff_mod_depth),
-
-        np.array(lfo1_rate),
-        np.array(lfo1_shape),
-
-        np.array(lfo2_rate),
-        np.array(lfo2_shape),
-
-        np.array(envelope_decay),
-        np.array(envelope_attack),
-        np.array(envelope_sustain),
-        np.array(envelope_release),
-
-        np.array(filter_envelope_attack),
-        np.array(filter_envelope_decay),
-        np.array(filter_envelope_sustain),
-        np.array(filter_envelope_release)
+        osc1_shape[0],
+        osc1_phase[0],
+        osc1_volume[0],
+        osc1_freq[0],
+        osc1_vdepth[0],
+        osc1_pdepth[0],
+        osc2_shape[0],
+        osc2_phase[0],
+        osc2_volume[0],
+        osc2_freq[0],
+        osc2_vdepth[0],
+        osc2_pdepth[0],
+        osc3_shape[0],
+        osc3_phase[0],
+        osc3_volume[0],
+        osc3_freq[0],
+        osc3_vdepth[0],
+        osc3_pdepth[0],
+        osc4_shape[0],
+        osc4_phase[0],
+        osc4_volume[0],
+        osc4_freq[0],
+        osc4_vdepth[0],
+        osc4_pdepth[0],
+        oscnoise_volume[0],
+        base_cutoff_hz[0],
+        base_q[0],
+        filter_type[0],
+        envelope_depth[0],
+        cutoff_mod_depth[0],
+        lfo1_rate[0],
+        lfo1_shape[0],
+        lfo2_rate[0],
+        lfo2_shape[0],
+        envelope_decay[0],
+        envelope_attack[0],
+        envelope_sustain[0],
+        envelope_release[0],
+        filter_envelope_attack[0],
+        filter_envelope_decay[0],
+        filter_envelope_sustain[0],
+        filter_envelope_release[0]
     )
