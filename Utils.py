@@ -106,8 +106,13 @@ def get_square_wave(x, duty=0.5):
     duty = 2.0 * duty - 1.0
     return np.tanh(5.0 * (np.sin(x) - duty))
 
-def denormalize(n, v_min, v_max):
-    return v_min + n * (v_max - v_min)
+def denormalize(is_normalized, n, v_min, v_max):
+    if is_normalized:
+        return n * (v_max - v_min) + v_min
+    return n
+
+def normalize(n, v_min, v_max):
+    return (n - v_min) / (v_max - v_min)
 
 def get_freq_log(freq):
     freq = np.maximum(freq, 0.1)
@@ -335,9 +340,6 @@ def mfcc(audio, sr=16000, n_mfcc=13, n_mels=26, n_fft=2048, hop_length=512):
         n_fft=n_fft,
         hop_length=hop_length
     )
-
-def frequency_parser(freq):
-    return freq
 
 def MSE(predictions, target):
     return np.mean((predictions - target)**2, axis=(1, 2))
