@@ -810,5 +810,77 @@
             "lfo_choose": 0,
             "envelope_depth": 0
         }
+    },
+    {
+        "general": {
+        "sample_rate": 44100,
+        "duration": 2
+    },
+    "osc1": {
+        "shape": 1.0,
+        "volume": 1,
+        "phase": 0,
+        "frequency": 440,
+        "volume_mod_depth": 0,
+        "pitch_mod_depth": 0,
+        "lfo_choose": 0
+    },
+    "osc2": {
+        "shape": 0,
+        "volume": 0,
+        "phase": 0,
+        "frequency": 0,
+        "volume_mod_depth": 0,
+        "pitch_mod_depth": 0,
+        "lfo_choose": 0
+    },
+    "osc3": {
+        "shape": 0,
+        "volume": 0,
+        "phase": 0,
+        "frequency": 0,
+        "volume_mod_depth": 0,
+        "pitch_mod_depth": 0,
+        "lfo_choose": 0
+    },
+    "osc4": {
+        "shape": 0,
+        "volume": 0,
+        "phase": 0,
+        "frequency": 0,
+        "volume_mod_depth": 0,
+        "pitch_mod_depth": 0,
+        "lfo_choose": 0
+    },
+    "osc_noise": {
+        "volume": 0
+    },
+    "lfo1": {
+        "rate": 0,
+        "shape": 0
+    },
+    "lfo2": {
+        "rate": 0,
+        "shape": 0
+    },
+    "amplitude_envelope": {
+        "attack": 0,
+        "decay": 0,
+        "sustain": 1,
+        "release": 0
+    },
+    "filter_envelope": {
+        "attack": 0,
+        "decay": 0,
+        "sustain": 0,
+        "release": 0
+    },
+    "filter": {
+        "cutoff": 0,
+        "type": 0,
+        "q": 0.707,
+        "cutoff_mod_depth": 0,
+        "envelope_depth": 0
     }
+}
 ]

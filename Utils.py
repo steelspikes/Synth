@@ -1,6 +1,38 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import json
+import librosa
+
+NUM_PARAMETERS = 42
+
+PARAM_NAMES = [
+    'osc1_shape', 'osc1_phase', 'osc1_volume', 'osc1_freq',
+    'osc1_vdepth', 'osc1_pdepth',
+
+    'osc2_shape', 'osc2_phase', 'osc2_volume', 'osc2_freq',
+    'osc2_vdepth', 'osc2_pdepth',
+
+    'osc3_shape', 'osc3_phase', 'osc3_volume', 'osc3_freq',
+    'osc3_vdepth', 'osc3_pdepth',
+
+    'osc4_shape', 'osc4_phase', 'osc4_volume', 'osc4_freq',
+    'osc4_vdepth', 'osc4_pdepth',
+
+    'oscnoise_volume',
+
+    'base_cutoff_hz', 'base_q', 'filter_type',
+    'envelope_depth', 'cutoff_mod_depth',
+
+    'lfo1_rate', 'lfo1_shape',
+    'lfo2_rate', 'lfo2_shape',
+
+    'envelope_decay', 'envelope_attack',
+    'envelope_sustain', 'envelope_release',
+
+    'filter_envelope_attack', 'filter_envelope_decay',
+    'filter_envelope_sustain', 'filter_envelope_release'
+]
+
 
 def create_morphed_wave(morph_param, base_phase):
     # return get_sine_wave(base_phase)
@@ -78,6 +110,7 @@ def denormalize(n, v_min, v_max):
     return v_min + n * (v_max - v_min)
 
 def get_freq_log(freq):
+    freq = np.maximum(freq, 0.1)
     return np.log(freq)
 
 def plot_spectrum_linear(waveform, sample_rate, title="Espectro de Frecuencia"):
@@ -106,8 +139,8 @@ def plot_spectrum_linear(waveform, sample_rate, title="Espectro de Frecuencia"):
     plt.xlim(0, sample_rate / 2)
     plt.show()
 
-def load_parameters_file():
-    with open('presets/parameters.json', 'r', encoding='utf-8') as file:
+def load_parameters_file(name):
+    with open(f'presets/{name}', 'r', encoding='utf-8') as file:
         parameters_file = json.load(file)
 
     osc1_shape = []
@@ -162,32 +195,32 @@ def load_parameters_file():
     filter_envelope_sustain = []
     filter_envelope_release = []
 
-    for preset in [parameters_file[0]]*100:
+    for preset in parameters_file:
         osc1_shape.append(preset['osc1']['shape'])
         osc1_phase.append(preset['osc1']['phase'])
         osc1_volume.append(preset['osc1']['volume'])
-        osc1_freq.append(get_freq_log(preset['osc1']['frequency']))
+        osc1_freq.append(preset['osc1']['frequency'])
         osc1_vdepth.append(preset['osc1']['volume_mod_depth'])
         osc1_pdepth.append(preset['osc1']['pitch_mod_depth'])
 
         osc2_shape.append(preset['osc2']['shape'])
         osc2_phase.append(preset['osc2']['phase'])
         osc2_volume.append(preset['osc2']['volume'])
-        osc2_freq.append(get_freq_log(preset['osc2']['frequency']))
+        osc2_freq.append(preset['osc2']['frequency'])
         osc2_vdepth.append(preset['osc2']['volume_mod_depth'])
         osc2_pdepth.append(preset['osc2']['pitch_mod_depth'])
 
         osc3_shape.append(preset['osc3']['shape'])
         osc3_phase.append(preset['osc3']['phase'])
         osc3_volume.append(preset['osc3']['volume'])
-        osc3_freq.append(get_freq_log(preset['osc3']['frequency']))
+        osc3_freq.append(preset['osc3']['frequency'])
         osc3_vdepth.append(preset['osc3']['volume_mod_depth'])
         osc3_pdepth.append(preset['osc3']['pitch_mod_depth'])
 
         osc4_shape.append(preset['osc4']['shape'])
         osc4_phase.append(preset['osc4']['phase'])
         osc4_volume.append(preset['osc4']['volume'])
-        osc4_freq.append(get_freq_log(preset['osc4']['frequency']))
+        osc4_freq.append(preset['osc4']['frequency'])
         osc4_vdepth.append(preset['osc4']['volume_mod_depth'])
         osc4_pdepth.append(preset['osc4']['pitch_mod_depth'])
 
@@ -199,10 +232,10 @@ def load_parameters_file():
         envelope_depth.append(preset['filter']['envelope_depth'])
         cutoff_mod_depth.append(preset['filter']['cutoff_mod_depth'])
 
-        lfo1_rate.append(get_freq_log(preset['lfo1']['rate']))
+        lfo1_rate.append(preset['lfo1']['rate'])
         lfo1_shape.append(preset['lfo1']['shape'])
 
-        lfo2_rate.append(get_freq_log(preset['lfo2']['rate']))
+        lfo2_rate.append(preset['lfo2']['rate'])
         lfo2_shape.append(preset['lfo2']['shape'])
 
         envelope_decay.append(preset['amplitude_envelope']['decay'])
@@ -268,3 +301,43 @@ def load_parameters_file():
         'filter_envelope_sustain': np.array(filter_envelope_sustain),
         'filter_envelope_release': np.array(filter_envelope_release)
     }
+
+def from_matrix_to_preset(matrix_population):
+    params = {
+        PARAM_NAMES[i]: matrix_population[:, i]
+        for i in range(matrix_population.shape[1])
+    }
+
+    return params
+
+    
+
+def mfcc(audio, sr=16000, n_mfcc=13, n_mels=26, n_fft=2048, hop_length=512):
+    """
+    Calcula los coeficientes MFCC de un audio.
+    
+    Args:
+        audio (1D np.array): señal de audio.
+        sr (int): sample rate.
+        n_mfcc (int): número de coeficientes MFCC a retornar.
+        n_mels (int): número de filtros Mel.
+        n_fft (int): tamaño de la ventana FFT.
+        hop_length (int): salto entre frames.
+        
+    Returns:
+        np.array: matriz (n_mfcc x n_frames) de MFCC.
+    """
+    return librosa.feature.mfcc(
+        y=audio,
+        sr=sr,
+        n_mfcc=n_mfcc,
+        n_mels=n_mels,
+        n_fft=n_fft,
+        hop_length=hop_length
+    )
+
+def frequency_parser(freq):
+    return freq
+
+def MSE(predictions, target):
+    return np.mean((predictions - target)**2, axis=(1, 2))

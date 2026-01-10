@@ -81,6 +81,7 @@ class BiquadFilter:
         presets = input_wave.shape[0]
         num_samples = input_wave.shape[1]
 
+        # modulated_cutoff = np.exp(self.base_cutoff_hz.astype(np.float32))
         modulated_cutoff = self.base_cutoff_hz.astype(np.float32)
         modulated_cutoff = np.expand_dims(modulated_cutoff, axis=1)
         modulated_cutoff = np.broadcast_to(modulated_cutoff, (presets, num_samples))

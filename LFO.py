@@ -17,7 +17,8 @@ class LFO:
         t = np.expand_dims(t, axis=0)
         t = np.broadcast_to(t, (presets, num_samples))
 
-        freq_hz = np.exp(self.rate)
+        # freq_hz = np.exp(self.rate)
+        freq_hz = self.rate
         freq_hz = np.expand_dims(freq_hz, axis=1)
         phase = 2 * np.pi * freq_hz * t
         

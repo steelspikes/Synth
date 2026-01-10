@@ -4,6 +4,7 @@ from NoiseOscillator import NoiseOscillator
 from Envelope import Envelope
 from Oscillator import Oscillator
 import numpy as np
+from Utils import frequency_parser
 
 class Synth:
     def __init__(self, sample_rate=44100, duration=0, presets=None):
@@ -12,8 +13,8 @@ class Synth:
         self.duration = duration
 
     def process_audio(self):
-        lfo1 = LFO(rate_hz=self.presets['lfo1_rate'], shape=self.presets['lfo1_shape'])
-        lfo2 = LFO(rate_hz=self.presets['lfo2_rate'], shape=self.presets['lfo2_shape'])
+        lfo1 = LFO(rate_hz=frequency_parser(self.presets['lfo1_rate']), shape=self.presets['lfo1_shape'])
+        lfo2 = LFO(rate_hz=frequency_parser(self.presets['lfo2_rate']), shape=self.presets['lfo2_shape'])
 
         lfo_signal = lfo1.process(int(self.sample_rate * self.duration))
 
@@ -21,7 +22,7 @@ class Synth:
             shape=self.presets['osc1_shape'], 
             phase=self.presets['osc1_phase'], 
             volume=self.presets['osc1_volume'], 
-            initial_freq=self.presets['osc1_freq'], 
+            initial_freq=frequency_parser(self.presets['osc1_freq']), 
             lfo_signal=lfo_signal,
             sample_rate=self.sample_rate, 
             duration=self.duration,
@@ -33,7 +34,7 @@ class Synth:
             shape=self.presets['osc2_shape'], 
             phase=self.presets['osc2_phase'], 
             volume=self.presets['osc2_volume'], 
-            initial_freq=self.presets['osc2_freq'], 
+            initial_freq=frequency_parser(self.presets['osc2_freq']), 
             lfo_signal=lfo_signal,
             sample_rate=self.sample_rate, 
             duration=self.duration,
@@ -45,7 +46,7 @@ class Synth:
             shape=self.presets['osc3_shape'], 
             phase=self.presets['osc3_phase'], 
             volume=self.presets['osc3_volume'], 
-            initial_freq=self.presets['osc3_freq'], 
+            initial_freq=frequency_parser(self.presets['osc3_freq']), 
             lfo_signal=lfo_signal,
             sample_rate=self.sample_rate, 
             duration=self.duration,
@@ -57,7 +58,7 @@ class Synth:
             shape=self.presets['osc4_shape'], 
             phase=self.presets['osc4_phase'], 
             volume=self.presets['osc4_volume'], 
-            initial_freq=self.presets['osc4_freq'], 
+            initial_freq=frequency_parser(self.presets['osc4_freq']), 
             lfo_signal=lfo_signal,
             sample_rate=self.sample_rate, 
             duration=self.duration,
@@ -80,9 +81,9 @@ class Synth:
         )
 
         biquad_filter = BiquadFilter(
-            base_cutoff_hz=self.presets['base_cutoff_hz'], 
+            base_cutoff_hz=frequency_parser(self.presets['base_cutoff_hz']), 
             filter_type=self.presets['filter_type'], 
-            base_q=self.presets['base_q'],
+            base_q=np.maximum(self.presets['base_q'], 0.707),
             lfo_instance=lfo2,
             envelope=envelope_filter,
             envelope_depth=self.presets['envelope_depth'],
@@ -104,4 +105,8 @@ class Synth:
         envelope_amp_signal = envelope_amp.process(self.duration)
         out = out * envelope_amp_signal
 
-        return out / np.max(np.abs(out))
+        # peak = np.max(np.abs(out))
+        # if peak > 0:
+        #     out = out / peak
+
+        return out

@@ -52,7 +52,8 @@ class Oscillator:
         phase_offset_radians = np.clip(self.phase) * 2 * np.pi
         phase_offset_radians = np.expand_dims(phase_offset_radians, axis=1)
 
-        freq_hz = np.exp(freq)
+        # freq_hz = np.exp(freq)
+        freq_hz = freq
         freq_hz = np.expand_dims(freq_hz, axis=1)
 
         freq_hz = freq_hz * self.modulate_freq(np.expand_dims(self.pitch_mod_depth, axis=1))
