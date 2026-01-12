@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import json
 import librosa
+from globals import SAMPLE_RATE, DURATION, PROCESSORS
 
 NUM_PARAMETERS = 42
 
@@ -106,10 +107,8 @@ def get_square_wave(x, duty=0.5):
     duty = 2.0 * duty - 1.0
     return np.tanh(5.0 * (np.sin(x) - duty))
 
-def denormalize(is_normalized, n, v_min, v_max):
-    if is_normalized:
-        return n * (v_max - v_min) + v_min
-    return n
+def denormalize(n, v_min, v_max):
+    return n * (v_max - v_min) + v_min
 
 def normalize(n, v_min, v_max):
     return (n - v_min) / (v_max - v_min)
@@ -317,29 +316,142 @@ def from_matrix_to_preset(matrix_population):
 
     
 
-def mfcc(audio, sr=16000, n_mfcc=13, n_mels=26, n_fft=2048, hop_length=512):
-    """
-    Calcula los coeficientes MFCC de un audio.
-    
-    Args:
-        audio (1D np.array): señal de audio.
-        sr (int): sample rate.
-        n_mfcc (int): número de coeficientes MFCC a retornar.
-        n_mels (int): número de filtros Mel.
-        n_fft (int): tamaño de la ventana FFT.
-        hop_length (int): salto entre frames.
+def mfcc(audios, sr, n_mfcc=40, n_mels=128, n_fft=2048, hop_length=512):
+    batch_results = []
+
+    for audio in audios:
+        # 1. Extracción (Independiente por cada audio)
+        # Esto evita el 'Warning' de la documentación sobre la sonoridad pico compartida
+        mfcc_raw = librosa.feature.mfcc(
+            y=audio,
+            sr=sr,
+            n_mfcc=n_mfcc,
+            n_mels=n_mels,
+            n_fft=n_fft,
+            hop_length=hop_length
+        )
+
+        # 2. Normalización Z-score local
+        # Aplicamos la estandarización: z = (x - mu) / sigma
+        mean = np.mean(mfcc_raw, axis=1, keepdims=True)
+        std = np.std(mfcc_raw, axis=1, keepdims=True)
         
-    Returns:
-        np.array: matriz (n_mfcc x n_frames) de MFCC.
-    """
-    return librosa.feature.mfcc(
-        y=audio,
+        mfcc_norm = (mfcc_raw - mean) / (std + 1e-8)
+        
+        batch_results.append(mfcc_norm)
+
+    return np.array(batch_results)
+
+def mel_spectrogram(y, sr, n_fft=2048, hop_length=512, n_mels=128):
+    S = librosa.feature.melspectrogram(
+        y=y,
         sr=sr,
-        n_mfcc=n_mfcc,
-        n_mels=n_mels,
         n_fft=n_fft,
-        hop_length=hop_length
+        hop_length=hop_length,
+        n_mels=n_mels
     )
+    
+    S_db = librosa.power_to_db(S, ref=np.max, top_db=80)
+
+    mean = np.mean(S_db)
+    std = np.std(S_db)
+    S_norm = (S_db - mean) / (std + 1e-8)
+    
+    return S_norm
 
 def MSE(predictions, target):
     return np.mean((predictions - target)**2, axis=(1, 2))
+
+def manage_normalization(presets, should_normalize):
+    MIN_FREQ = 1
+    MAX_FREQ = SAMPLE_RATE / 2
+    
+    fun = normalize if should_normalize else denormalize 
+    return {
+        # LFO 1 y 2
+        "lfo1_rate": fun(presets['lfo1_rate'], 0, 20),
+        "lfo1_shape": fun(presets['lfo1_shape'], 0, 4),
+        "lfo2_rate": fun(presets['lfo2_rate'], 0, 20),
+        "lfo2_shape": fun(presets['lfo2_shape'], 0, 4),
+
+        # Osc 1
+        "osc1_shape": fun(presets['osc1_shape'], 0, 4),
+        "osc1_phase": fun(presets['osc1_phase'], 0, 1),
+        "osc1_volume": fun(presets['osc1_volume'], 0, 1),
+        "osc1_freq": fun(presets['osc1_freq'], MIN_FREQ, MAX_FREQ),
+        "osc1_vdepth": fun(presets['osc1_vdepth'], 0, 1),
+        "osc1_pdepth": fun(presets['osc1_pdepth'], 0, 1),
+
+        # Osc 2
+        "osc2_shape": fun(presets['osc2_shape'], 0, 4),
+        "osc2_phase": fun(presets['osc2_phase'], 0, 1),
+        "osc2_volume": fun(presets['osc2_volume'], 0, 1),
+        "osc2_freq": fun(presets['osc2_freq'], MIN_FREQ, MAX_FREQ),
+        "osc2_vdepth": fun(presets['osc2_vdepth'], 0, 1),
+        "osc2_pdepth": fun(presets['osc2_pdepth'], 0, 1),
+
+        # Osc 3
+        "osc3_shape": fun(presets['osc3_shape'], 0, 4),
+        "osc3_phase": fun(presets['osc3_phase'], 0, 1),
+        "osc3_volume": fun(presets['osc3_volume'], 0, 1),
+        "osc3_freq": fun(presets['osc3_freq'], MIN_FREQ, MAX_FREQ),
+        "osc3_vdepth": fun(presets['osc3_vdepth'], 0, 1),
+        "osc3_pdepth": fun(presets['osc3_pdepth'], 0, 1),
+
+        # Osc 4
+        "osc4_shape": fun(presets['osc4_shape'], 0, 4),
+        "osc4_phase": fun(presets['osc4_phase'], 0, 1),
+        "osc4_volume": fun(presets['osc4_volume'], 0, 1),
+        "osc4_freq": fun(presets['osc4_freq'], MIN_FREQ, MAX_FREQ),
+        "osc4_vdepth": fun(presets['osc4_vdepth'], 0, 1),
+        "osc4_pdepth": fun(presets['osc4_pdepth'], 0, 1),
+
+        # Osc Noise
+        "oscnoise_volume": fun(presets['oscnoise_volume'], 0, 1),
+
+        # Filter envelope
+        "filter_envelope_attack": fun(presets['filter_envelope_attack'], 0, DURATION),
+        "filter_envelope_decay": denormalize(presets['filter_envelope_decay'], 0, DURATION),
+        "filter_envelope_sustain": fun(presets['filter_envelope_sustain'], 0, 1),
+        "filter_envelope_release": fun(presets['filter_envelope_release'], 0, DURATION),
+
+        # Biquad filter
+        "base_cutoff_hz": fun(presets['base_cutoff_hz'], MIN_FREQ, MAX_FREQ),
+        "filter_type": fun(presets['filter_type'], 0, 2),
+        "base_q": fun(presets['base_q'], 0.707, 20),
+        "envelope_depth": fun(presets['envelope_depth'], 0, 1),
+        "cutoff_mod_depth": fun(presets['cutoff_mod_depth'], 0, 1),
+
+        # Amplitude envelope
+        "envelope_attack": fun(presets['envelope_attack'], 0, DURATION),
+        "envelope_decay": fun(presets['envelope_decay'], 0, DURATION),
+        "envelope_sustain": fun(presets['envelope_sustain'], 0, 1),
+        "envelope_release": fun(presets['envelope_release'], 0, DURATION),
+    }
+
+
+def denormalize_preset(preset):
+    return manage_normalization(preset, False)
+
+def normalize_preset(preset):
+    return manage_normalization(preset, True)
+
+def pretty_print(obj, indent=0):
+    """Imprime diccionarios y listas anidadas de manera elegante, 
+    convirtiendo numpy arrays a listas automáticamente."""
+    spacing = "  " * indent
+    if isinstance(obj, dict):
+        print(f"{spacing}{{")
+        for k, v in obj.items():
+            print(f"{spacing}  {k}: ", end="")
+            pretty_print(v, indent + 1)
+        print(f"{spacing}}}")
+    elif isinstance(obj, list) or isinstance(obj, np.ndarray):
+        if isinstance(obj, np.ndarray):
+            obj = obj.tolist()
+        print(f"{spacing}[")
+        for item in obj:
+            pretty_print(item, indent + 1)
+        print(f"{spacing}]")
+    else:
+        print(f"{spacing}{obj}")

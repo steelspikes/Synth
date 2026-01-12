@@ -1,16 +1,13 @@
 from Synth import Synth
-from Utils import mfcc
+from Utils import mfcc, mel_spectrogram
 from globals import SAMPLE_RATE, DURATION
 
-def evaluate_presets(data):
-    presets, normalized = data
+def evaluate_presets(presets):
     synth = Synth(
         sample_rate=SAMPLE_RATE,
         duration=DURATION,
-        presets=presets,
-        is_normalized=normalized
+        presets=presets
     )
     audio = synth.process_audio()
-    mfcc_coefs = mfcc(audio, n_mfcc=13, n_mels=26, n_fft=1024, hop_length=256)
-
-    return mfcc_coefs
+    return mfcc(audio, sr=SAMPLE_RATE)
+    # return mel_spectrogram(audio, sr=SAMPLE_RATE)
