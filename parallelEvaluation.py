@@ -9,5 +9,5 @@ def evaluate_presets(presets):
         presets=presets
     )
     audio = synth.process_audio()
-    return mfcc(audio, sr=SAMPLE_RATE)
-    # return mel_spectrogram(audio, sr=SAMPLE_RATE)
+    # return mfcc(audio, sr=SAMPLE_RATE)
+    return mel_spectrogram(audio, sr=SAMPLE_RATE)

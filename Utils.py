@@ -113,6 +113,18 @@ def denormalize(n, v_min, v_max):
 def normalize(n, v_min, v_max):
     return (n - v_min) / (v_max - v_min)
 
+def log_normalize(f, f_min, f_max):
+    log_f = np.log10(f)        # logaritmo de la frecuencia
+    log_min = np.log10(f_min)  # logaritmo del mínimo
+    log_max = np.log10(f_max)  # logaritmo del máximo
+    return normalize(log_f, log_min, log_max)
+
+def log_denormalize(x_norm, f_min, f_max):
+    log_min = np.log10(f_min)
+    log_max = np.log10(f_max)
+    log_f = denormalize(x_norm, log_min, log_max)
+    return 10 ** log_f  # Volvemos a Hz
+
 def get_freq_log(freq):
     freq = np.maximum(freq, 0.1)
     return np.log(freq)
@@ -314,6 +326,9 @@ def from_matrix_to_preset(matrix_population):
 
     return params
 
+def from_preset_to_matrix(preset):
+    return np.array([preset[name] for name in PARAM_NAMES])
+
     
 
 def mfcc(audios, sr, n_mfcc=40, n_mels=128, n_fft=2048, hop_length=512):
@@ -342,43 +357,52 @@ def mfcc(audios, sr, n_mfcc=40, n_mels=128, n_fft=2048, hop_length=512):
 
     return np.array(batch_results)
 
-def mel_spectrogram(y, sr, n_fft=2048, hop_length=512, n_mels=128):
-    S = librosa.feature.melspectrogram(
-        y=y,
-        sr=sr,
-        n_fft=n_fft,
-        hop_length=hop_length,
-        n_mels=n_mels
-    )
-    
-    S_db = librosa.power_to_db(S, ref=np.max, top_db=80)
+def mel_spectrogram(audios, sr, n_fft=2048, hop_length=512, n_mels=128):
+    batch_results = []
 
-    mean = np.mean(S_db)
-    std = np.std(S_db)
-    S_norm = (S_db - mean) / (std + 1e-8)
-    
-    return S_norm
+    for y in audios:
+        S = librosa.feature.melspectrogram(
+            y=y,
+            sr=sr,
+            n_fft=n_fft,
+            hop_length=hop_length,
+            n_mels=n_mels
+        )
+        
+        # S_db = librosa.power_to_db(S, ref=np.max, top_db=80)
+
+        # mean = np.mean(S_db)
+        # std = np.std(S_db)
+        # S_norm = (S_db - mean) / (std + 1e-8)
+
+        S_db = librosa.amplitude_to_db(S, ref=1.0, top_db=80)
+        S_norm = (S_db + 80) / 80
+
+        batch_results.append(S_norm)
+        
+    return np.array(batch_results)
 
 def MSE(predictions, target):
     return np.mean((predictions - target)**2, axis=(1, 2))
 
 def manage_normalization(presets, should_normalize):
-    MIN_FREQ = 1
+    MIN_FREQ = 20
     MAX_FREQ = SAMPLE_RATE / 2
     
     fun = normalize if should_normalize else denormalize 
+    funlog = log_normalize if should_normalize else log_denormalize
     return {
         # LFO 1 y 2
-        "lfo1_rate": fun(presets['lfo1_rate'], 0, 20),
+        "lfo1_rate": funlog(presets['lfo1_rate'], 0.01, 20),
         "lfo1_shape": fun(presets['lfo1_shape'], 0, 4),
-        "lfo2_rate": fun(presets['lfo2_rate'], 0, 20),
+        "lfo2_rate": funlog(presets['lfo2_rate'], 0.01, 20),
         "lfo2_shape": fun(presets['lfo2_shape'], 0, 4),
 
         # Osc 1
         "osc1_shape": fun(presets['osc1_shape'], 0, 4),
         "osc1_phase": fun(presets['osc1_phase'], 0, 1),
         "osc1_volume": fun(presets['osc1_volume'], 0, 1),
-        "osc1_freq": fun(presets['osc1_freq'], MIN_FREQ, MAX_FREQ),
+        "osc1_freq": funlog(presets['osc1_freq'], MIN_FREQ, MAX_FREQ),
         "osc1_vdepth": fun(presets['osc1_vdepth'], 0, 1),
         "osc1_pdepth": fun(presets['osc1_pdepth'], 0, 1),
 
@@ -386,7 +410,7 @@ def manage_normalization(presets, should_normalize):
         "osc2_shape": fun(presets['osc2_shape'], 0, 4),
         "osc2_phase": fun(presets['osc2_phase'], 0, 1),
         "osc2_volume": fun(presets['osc2_volume'], 0, 1),
-        "osc2_freq": fun(presets['osc2_freq'], MIN_FREQ, MAX_FREQ),
+        "osc2_freq": funlog(presets['osc2_freq'], MIN_FREQ, MAX_FREQ),
         "osc2_vdepth": fun(presets['osc2_vdepth'], 0, 1),
         "osc2_pdepth": fun(presets['osc2_pdepth'], 0, 1),
 
@@ -394,7 +418,7 @@ def manage_normalization(presets, should_normalize):
         "osc3_shape": fun(presets['osc3_shape'], 0, 4),
         "osc3_phase": fun(presets['osc3_phase'], 0, 1),
         "osc3_volume": fun(presets['osc3_volume'], 0, 1),
-        "osc3_freq": fun(presets['osc3_freq'], MIN_FREQ, MAX_FREQ),
+        "osc3_freq": funlog(presets['osc3_freq'], MIN_FREQ, MAX_FREQ),
         "osc3_vdepth": fun(presets['osc3_vdepth'], 0, 1),
         "osc3_pdepth": fun(presets['osc3_pdepth'], 0, 1),
 
@@ -402,7 +426,7 @@ def manage_normalization(presets, should_normalize):
         "osc4_shape": fun(presets['osc4_shape'], 0, 4),
         "osc4_phase": fun(presets['osc4_phase'], 0, 1),
         "osc4_volume": fun(presets['osc4_volume'], 0, 1),
-        "osc4_freq": fun(presets['osc4_freq'], MIN_FREQ, MAX_FREQ),
+        "osc4_freq": funlog(presets['osc4_freq'], MIN_FREQ, MAX_FREQ),
         "osc4_vdepth": fun(presets['osc4_vdepth'], 0, 1),
         "osc4_pdepth": fun(presets['osc4_pdepth'], 0, 1),
 
@@ -410,23 +434,23 @@ def manage_normalization(presets, should_normalize):
         "oscnoise_volume": fun(presets['oscnoise_volume'], 0, 1),
 
         # Filter envelope
-        "filter_envelope_attack": fun(presets['filter_envelope_attack'], 0, DURATION),
-        "filter_envelope_decay": denormalize(presets['filter_envelope_decay'], 0, DURATION),
+        "filter_envelope_attack": fun(presets['filter_envelope_attack'], 0, 0.5),
+        "filter_envelope_decay": fun(presets['filter_envelope_decay'], 0, 1),
         "filter_envelope_sustain": fun(presets['filter_envelope_sustain'], 0, 1),
-        "filter_envelope_release": fun(presets['filter_envelope_release'], 0, DURATION),
+        "filter_envelope_release": fun(presets['filter_envelope_release'], 0, 0.5),
 
         # Biquad filter
-        "base_cutoff_hz": fun(presets['base_cutoff_hz'], MIN_FREQ, MAX_FREQ),
+        "base_cutoff_hz": funlog(presets['base_cutoff_hz'], MIN_FREQ, MAX_FREQ),
         "filter_type": fun(presets['filter_type'], 0, 2),
-        "base_q": fun(presets['base_q'], 0.707, 20),
+        "base_q": funlog(presets['base_q'], 0.707, 20),
         "envelope_depth": fun(presets['envelope_depth'], 0, 1),
         "cutoff_mod_depth": fun(presets['cutoff_mod_depth'], 0, 1),
 
         # Amplitude envelope
-        "envelope_attack": fun(presets['envelope_attack'], 0, DURATION),
-        "envelope_decay": fun(presets['envelope_decay'], 0, DURATION),
+        "envelope_attack": fun(presets['envelope_attack'], 0, 0.5),
+        "envelope_decay": fun(presets['envelope_decay'], 0, 1),
         "envelope_sustain": fun(presets['envelope_sustain'], 0, 1),
-        "envelope_release": fun(presets['envelope_release'], 0, DURATION),
+        "envelope_release": fun(presets['envelope_release'], 0, 0.5),
     }
 
 

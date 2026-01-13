@@ -20,7 +20,7 @@ class Synth:
 
         osc1 = Oscillator(
             shape=self.presets['osc1_shape'], 
-            phase=np.zeros_like(self.presets['osc1_phase']), 
+            phase=self.presets['osc1_phase'], 
             volume=self.presets['osc1_volume'], 
             initial_freq=self.presets['osc1_freq'], 
             lfo_signal=lfo_signal,
@@ -32,7 +32,7 @@ class Synth:
 
         osc2 = Oscillator(
             shape=self.presets['osc2_shape'], 
-            phase=np.zeros_like(self.presets['osc2_phase']), 
+            phase=self.presets['osc2_phase'], 
             volume=self.presets['osc2_volume'], 
             initial_freq=self.presets['osc2_freq'], 
             lfo_signal=lfo_signal,
@@ -44,7 +44,7 @@ class Synth:
 
         osc3 = Oscillator(
             shape=self.presets['osc3_shape'], 
-            phase=np.zeros_like(self.presets['osc3_phase']), 
+            phase=self.presets['osc3_phase'], 
             volume=self.presets['osc3_volume'], 
             initial_freq=self.presets['osc3_freq'], 
             lfo_signal=lfo_signal,
@@ -56,7 +56,7 @@ class Synth:
 
         osc4 = Oscillator(
             shape=self.presets['osc4_shape'], 
-            phase=np.zeros_like(self.presets['osc4_phase']), 
+            phase=self.presets['osc4_phase'], 
             volume=self.presets['osc4_volume'], 
             initial_freq=self.presets['osc4_freq'], 
             lfo_signal=lfo_signal,
@@ -105,8 +105,8 @@ class Synth:
         envelope_amp_signal = envelope_amp.process(self.duration)
         out = out * envelope_amp_signal
 
-        peak = np.max(np.abs(out))
-        if peak > 0:
-            out = out / peak
+        # peak = np.max(np.abs(out))
+        # if peak > 0:
+        #     out = out / peak
 
         return out
