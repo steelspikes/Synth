@@ -4,10 +4,10 @@
         "duration": 2
     },
     "osc1": {
-        "shape": 1.0,
+        "shape": 3.0,
         "volume": 1,
         "phase": 0,
-        "frequency": 440,
+        "frequency": 880,
         "volume_mod_depth": 0,
         "pitch_mod_depth": 0,
         "lfo_choose": 0
