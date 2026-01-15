@@ -75,7 +75,7 @@ class BiquadFilter:
         self.lfo_instance = lfo_instance
         self.envelope = envelope
         self.envelope_depth = envelope_depth.astype(np.float32)
-        self.cutoff_mod_depth = cutoff_mod_depth.astype(np.float32)
+        self.cutoff_mod_depth = np.zeros(self.base_cutoff_hz.shape[0]) #cutoff_mod_depth.astype(np.float32)
         
     def process(self, input_wave):
         presets = input_wave.shape[0]
