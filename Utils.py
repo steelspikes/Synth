@@ -8,24 +8,24 @@ NUM_PARAMETERS = 42
 
 PARAM_NAMES = [
     'osc1_shape', 'osc1_phase', 'osc1_volume', 'osc1_freq',
-    #'osc1_vdepth', 'osc1_pdepth',
+    'osc1_vdepth', 'osc1_pdepth',
 
     'osc2_shape', 'osc2_phase', 'osc2_volume', 'osc2_freq',
-    #'osc2_vdepth', 'osc2_pdepth',
+    'osc2_vdepth', 'osc2_pdepth',
 
     'osc3_shape', 'osc3_phase', 'osc3_volume', 'osc3_freq',
-    #'osc3_vdepth', 'osc3_pdepth',
+    'osc3_vdepth', 'osc3_pdepth',
 
     'osc4_shape', 'osc4_phase', 'osc4_volume', 'osc4_freq',
-    #'osc4_vdepth', 'osc4_pdepth',
+    'osc4_vdepth', 'osc4_pdepth',
 
     'oscnoise_volume',
 
     'base_cutoff_hz', 'base_q', 'filter_type',
-    'envelope_depth', #'cutoff_mod_depth',
+    'envelope_depth', 'cutoff_mod_depth',
 
-    #'lfo1_rate', 'lfo1_shape',
-    #'lfo2_rate', 'lfo2_shape',
+    'lfo1_rate', 'lfo1_shape',
+    'lfo2_rate', 'lfo2_shape',
 
     'envelope_decay', 'envelope_attack',
     'envelope_sustain', 'envelope_release',
@@ -163,29 +163,29 @@ def load_parameters_file(name):
     osc1_phase = []
     osc1_volume = []
     osc1_freq = []
-    # osc1_vdepth = []
-    # osc1_pdepth = []
+    osc1_vdepth = []
+    osc1_pdepth = []
 
     osc2_shape = []
     osc2_phase = []
     osc2_volume = []
     osc2_freq = []
-    # osc2_vdepth = []
-    # osc2_pdepth = []
+    osc2_vdepth = []
+    osc2_pdepth = []
 
     osc3_shape = []
     osc3_phase = []
     osc3_volume = []
     osc3_freq = []
-    # osc3_vdepth = []
-    # osc3_pdepth = []
+    osc3_vdepth = []
+    osc3_pdepth = []
 
     osc4_shape = []
     osc4_phase = []
     osc4_volume = []
     osc4_freq = []
-    # osc4_vdepth = []
-    # osc4_pdepth = []
+    osc4_vdepth = []
+    osc4_pdepth = []
 
     oscnoise_volume = []
 
@@ -195,11 +195,11 @@ def load_parameters_file(name):
     envelope_depth = []
     cutoff_mod_depth = []
 
-    # lfo1_rate = []
-    # lfo1_shape = []
+    lfo1_rate = []
+    lfo1_shape = []
 
-    # lfo2_rate = []
-    # lfo2_shape = []
+    lfo2_rate = []
+    lfo2_shape = []
 
     envelope_decay = []
     envelope_attack = []
@@ -216,29 +216,29 @@ def load_parameters_file(name):
         osc1_phase.append(preset['osc1']['phase'])
         osc1_volume.append(preset['osc1']['volume'])
         osc1_freq.append(preset['osc1']['frequency'])
-        # osc1_vdepth.append(preset['osc1']['volume_mod_depth'])
-        # osc1_pdepth.append(preset['osc1']['pitch_mod_depth'])
+        osc1_vdepth.append(preset['osc1']['volume_mod_depth'])
+        osc1_pdepth.append(preset['osc1']['pitch_mod_depth'])
 
         osc2_shape.append(preset['osc2']['shape'])
         osc2_phase.append(preset['osc2']['phase'])
         osc2_volume.append(preset['osc2']['volume'])
         osc2_freq.append(preset['osc2']['frequency'])
-        # osc2_vdepth.append(preset['osc2']['volume_mod_depth'])
-        # osc2_pdepth.append(preset['osc2']['pitch_mod_depth'])
+        osc2_vdepth.append(preset['osc2']['volume_mod_depth'])
+        osc2_pdepth.append(preset['osc2']['pitch_mod_depth'])
 
         osc3_shape.append(preset['osc3']['shape'])
         osc3_phase.append(preset['osc3']['phase'])
         osc3_volume.append(preset['osc3']['volume'])
         osc3_freq.append(preset['osc3']['frequency'])
-        # osc3_vdepth.append(preset['osc3']['volume_mod_depth'])
-        # osc3_pdepth.append(preset['osc3']['pitch_mod_depth'])
+        osc3_vdepth.append(preset['osc3']['volume_mod_depth'])
+        osc3_pdepth.append(preset['osc3']['pitch_mod_depth'])
 
         osc4_shape.append(preset['osc4']['shape'])
         osc4_phase.append(preset['osc4']['phase'])
         osc4_volume.append(preset['osc4']['volume'])
         osc4_freq.append(preset['osc4']['frequency'])
-        # osc4_vdepth.append(preset['osc4']['volume_mod_depth'])
-        # osc4_pdepth.append(preset['osc4']['pitch_mod_depth'])
+        osc4_vdepth.append(preset['osc4']['volume_mod_depth'])
+        osc4_pdepth.append(preset['osc4']['pitch_mod_depth'])
 
         oscnoise_volume.append(preset['osc_noise']['volume'])
 
@@ -246,13 +246,13 @@ def load_parameters_file(name):
         base_q.append(preset['filter']['q'])
         filter_type.append(preset['filter']['type'])
         envelope_depth.append(preset['filter']['envelope_depth'])
-        # cutoff_mod_depth.append(preset['filter']['cutoff_mod_depth'])
+        cutoff_mod_depth.append(preset['filter']['cutoff_mod_depth'])
 
-        # lfo1_rate.append(preset['lfo1']['rate'])
-        # lfo1_shape.append(preset['lfo1']['shape'])
+        lfo1_rate.append(preset['lfo1']['rate'])
+        lfo1_shape.append(preset['lfo1']['shape'])
 
-        # lfo2_rate.append(preset['lfo2']['rate'])
-        # lfo2_shape.append(preset['lfo2']['shape'])
+        lfo2_rate.append(preset['lfo2']['rate'])
+        lfo2_shape.append(preset['lfo2']['shape'])
 
         envelope_decay.append(preset['amplitude_envelope']['decay'])
         envelope_attack.append(preset['amplitude_envelope']['attack'])
@@ -269,29 +269,29 @@ def load_parameters_file(name):
         'osc1_phase': np.array(osc1_phase),
         'osc1_volume': np.array(osc1_volume),
         'osc1_freq': np.array(osc1_freq),
-        # 'osc1_vdepth': np.array(osc1_vdepth),
-        # 'osc1_pdepth': np.array(osc1_pdepth),
+        'osc1_vdepth': np.array(osc1_vdepth),
+        'osc1_pdepth': np.array(osc1_pdepth),
 
         'osc2_shape': np.array(osc2_shape),
         'osc2_phase': np.array(osc2_phase),
         'osc2_volume': np.array(osc2_volume),
         'osc2_freq': np.array(osc2_freq),
-        # 'osc2_vdepth': np.array(osc2_vdepth),
-        # 'osc2_pdepth': np.array(osc2_pdepth),
+        'osc2_vdepth': np.array(osc2_vdepth),
+        'osc2_pdepth': np.array(osc2_pdepth),
 
         'osc3_shape': np.array(osc3_shape),
         'osc3_phase': np.array(osc3_phase),
         'osc3_volume': np.array(osc3_volume),
         'osc3_freq': np.array(osc3_freq),
-        # 'osc3_vdepth': np.array(osc3_vdepth),
-        # 'osc3_pdepth': np.array(osc3_pdepth),
+        'osc3_vdepth': np.array(osc3_vdepth),
+        'osc3_pdepth': np.array(osc3_pdepth),
 
         'osc4_shape': np.array(osc4_shape),
         'osc4_phase': np.array(osc4_phase),
         'osc4_volume': np.array(osc4_volume),
         'osc4_freq': np.array(osc4_freq),
-        # 'osc4_vdepth': np.array(osc4_vdepth),
-        # 'osc4_pdepth': np.array(osc4_pdepth),
+        'osc4_vdepth': np.array(osc4_vdepth),
+        'osc4_pdepth': np.array(osc4_pdepth),
 
         'oscnoise_volume': np.array(oscnoise_volume),
 
@@ -301,11 +301,11 @@ def load_parameters_file(name):
         'envelope_depth': np.array(envelope_depth),
         'cutoff_mod_depth': np.array(cutoff_mod_depth),
 
-        # 'lfo1_rate': np.array(lfo1_rate),
-        # 'lfo1_shape': np.array(lfo1_shape),
+        'lfo1_rate': np.array(lfo1_rate),
+        'lfo1_shape': np.array(lfo1_shape),
 
-        # 'lfo2_rate': np.array(lfo2_rate),
-        # 'lfo2_shape': np.array(lfo2_shape),
+        'lfo2_rate': np.array(lfo2_rate),
+        'lfo2_shape': np.array(lfo2_shape),
 
         'envelope_decay': np.array(envelope_decay),
         'envelope_attack': np.array(envelope_attack),
@@ -357,7 +357,7 @@ def mfcc(audios, sr, n_mfcc=40, n_mels=128, n_fft=2048, hop_length=512):
 
     return np.array(batch_results)
 
-def mel_spectrogram(audios, sr, n_fft=4096, hop_length=128, n_mels=512):
+def mel_spectrogram(audios, sr, n_fft=4096, hop_length=512, n_mels=256):
     batch_results = []
 
     for y in audios:
@@ -369,13 +369,29 @@ def mel_spectrogram(audios, sr, n_fft=4096, hop_length=128, n_mels=512):
             n_mels=n_mels
         )
         
-        # S_db = librosa.power_to_db(S, ref=np.max, top_db=80)
+        S_db = librosa.power_to_db(S, ref=1.0, top_db=80)
+        S_norm = (S_db + 80) / 80
 
-        # mean = np.mean(S_db)
-        # std = np.std(S_db)
-        # S_norm = (S_db - mean) / (std + 1e-8)
+        # import scipy
 
-        S_db = librosa.amplitude_to_db(S, ref=1.0, top_db=80)
+        # S_smooth = scipy.ndimage.gaussian_filter(S_norm, sigma=(1, 1))
+
+        batch_results.append(S_norm)
+        
+    return np.array(batch_results)
+
+def spectrogram(audios, n_fft=4096, hop_length=256):
+    batch_results = []
+
+    for y in audios:
+        S = librosa.stft(
+            y=y,
+            n_fft=n_fft,
+            hop_length=hop_length,
+            window='hann'
+        )
+
+        S_db = librosa.amplitude_to_db(np.abs(S), ref=1.0, top_db=80)
         S_norm = (S_db + 80) / 80
 
         batch_results.append(S_norm)
@@ -393,42 +409,42 @@ def manage_normalization(presets, should_normalize):
     funlog = log_normalize if should_normalize else log_denormalize
     return {
         # LFO 1 y 2
-        # "lfo1_rate": funlog(presets['lfo1_rate'], 0.01, 20),
-        # "lfo1_shape": fun(presets['lfo1_shape'], 0, 4),
-        # "lfo2_rate": funlog(presets['lfo2_rate'], 0.01, 20),
-        # "lfo2_shape": fun(presets['lfo2_shape'], 0, 4),
+        "lfo1_rate": funlog(presets['lfo1_rate'], 0.01, 20),
+        "lfo1_shape": fun(presets['lfo1_shape'], 0, 4),
+        "lfo2_rate": funlog(presets['lfo2_rate'], 0.01, 20),
+        "lfo2_shape": fun(presets['lfo2_shape'], 0, 4),
 
         # Osc 1
         "osc1_shape": fun(presets['osc1_shape'], 0, 4),
         "osc1_phase": fun(presets['osc1_phase'], 0, 1),
         "osc1_volume": fun(presets['osc1_volume'], 0, 1),
         "osc1_freq": funlog(presets['osc1_freq'], MIN_FREQ, MAX_FREQ),
-        # "osc1_vdepth": fun(presets['osc1_vdepth'], 0, 1),
-        # "osc1_pdepth": fun(presets['osc1_pdepth'], 0, 1),
+        "osc1_vdepth": fun(presets['osc1_vdepth'], 0, 1),
+        "osc1_pdepth": fun(presets['osc1_pdepth'], 0, 1),
 
         # Osc 2
         "osc2_shape": fun(presets['osc2_shape'], 0, 4),
         "osc2_phase": fun(presets['osc2_phase'], 0, 1),
         "osc2_volume": fun(presets['osc2_volume'], 0, 1),
         "osc2_freq": funlog(presets['osc2_freq'], MIN_FREQ, MAX_FREQ),
-        # "osc2_vdepth": fun(presets['osc2_vdepth'], 0, 1),
-        # "osc2_pdepth": fun(presets['osc2_pdepth'], 0, 1),
+        "osc2_vdepth": fun(presets['osc2_vdepth'], 0, 1),
+        "osc2_pdepth": fun(presets['osc2_pdepth'], 0, 1),
 
         # Osc 3
         "osc3_shape": fun(presets['osc3_shape'], 0, 4),
         "osc3_phase": fun(presets['osc3_phase'], 0, 1),
         "osc3_volume": fun(presets['osc3_volume'], 0, 1),
         "osc3_freq": funlog(presets['osc3_freq'], MIN_FREQ, MAX_FREQ),
-        # "osc3_vdepth": fun(presets['osc3_vdepth'], 0, 1),
-        # "osc3_pdepth": fun(presets['osc3_pdepth'], 0, 1),
+        "osc3_vdepth": fun(presets['osc3_vdepth'], 0, 1),
+        "osc3_pdepth": fun(presets['osc3_pdepth'], 0, 1),
 
         # Osc 4
         "osc4_shape": fun(presets['osc4_shape'], 0, 4),
         "osc4_phase": fun(presets['osc4_phase'], 0, 1),
         "osc4_volume": fun(presets['osc4_volume'], 0, 1),
         "osc4_freq": funlog(presets['osc4_freq'], MIN_FREQ, MAX_FREQ),
-        # "osc4_vdepth": fun(presets['osc4_vdepth'], 0, 1),
-        # "osc4_pdepth": fun(presets['osc4_pdepth'], 0, 1),
+        "osc4_vdepth": fun(presets['osc4_vdepth'], 0, 1),
+        "osc4_pdepth": fun(presets['osc4_pdepth'], 0, 1),
 
         # Osc Noise
         "oscnoise_volume": fun(presets['oscnoise_volume'], 0, 1),
@@ -444,7 +460,7 @@ def manage_normalization(presets, should_normalize):
         "filter_type": fun(presets['filter_type'], 0, 2),
         "base_q": funlog(presets['base_q'], 0.707, 20),
         "envelope_depth": fun(presets['envelope_depth'], 0, 1),
-        # "cutoff_mod_depth": fun(presets['cutoff_mod_depth'], 0, 1),
+        "cutoff_mod_depth": fun(presets['cutoff_mod_depth'], 0, 1),
 
         # Amplitude envelope
         "envelope_attack": fun(presets['envelope_attack'], 0, 0.2),

@@ -11,8 +11,8 @@ class Oscillator:
         self.pulse_width = 0
         self.phase = phase.astype(np.float32)
         self.volume = volume.astype(np.float32)
-        self.volume_mod_depth = np.zeros(self.shape.shape[0]) #volume_mod_depth.astype(np.float32)
-        self.pitch_mod_depth = np.zeros(self.shape.shape[0]) #pitch_mod_depth.astype(np.float32)
+        self.volume_mod_depth = volume_mod_depth.astype(np.float32)
+        self.pitch_mod_depth = pitch_mod_depth.astype(np.float32)
 
         self.lfo_signal = lfo_signal
 
