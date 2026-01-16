@@ -357,7 +357,7 @@ def mfcc(audios, sr, n_mfcc=40, n_mels=128, n_fft=2048, hop_length=512):
 
     return np.array(batch_results)
 
-def mel_spectrogram(audios, sr, n_fft=4096, hop_length=512, n_mels=256):
+def mel_spectrogram(audios, sr, n_fft=2048, hop_length=256, n_mels=256):
     batch_results = []
 
     for y in audios:
