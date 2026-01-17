@@ -109,4 +109,9 @@ class Synth:
         # if peak > 0:
         #     out = out / peak
 
+        rms_target = 0.1
+        rms_actual = np.sqrt(np.mean(out**2))
+        scale = rms_target / (rms_actual + 1e-8)
+        out = out * scale
+
         return out

@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import json
 import librosa
 from globals import SAMPLE_RATE, DURATION, PROCESSORS
+from scipy import signal
 
 NUM_PARAMETERS = 42
 
@@ -104,8 +105,9 @@ def get_sawtooth_wave(x):
     return 2 * (normalized - np.floor(normalized + 0.5)) # No diferenciable por floor, pero el gradiente fluye por x (normalized)
 
 def get_square_wave(x, duty=0.5):
-    duty = 2.0 * duty - 1.0
-    return np.tanh(5.0 * (np.sin(x) - duty))
+    # duty = 2.0 * duty - 1.0
+    # return np.tanh(5.0 * (np.sin(x) - duty))
+    return signal.square(x, duty=duty)
 
 def denormalize(n, v_min, v_max):
     return n * (v_max - v_min) + v_min
@@ -331,7 +333,7 @@ def from_preset_to_matrix(preset):
 
     
 
-def mfcc(audios, sr, n_mfcc=40, n_mels=128, n_fft=2048, hop_length=512):
+def mfcc(audios, sr, n_mfcc=30, n_mels=128, n_fft=2048, hop_length=512):
     batch_results = []
 
     for audio in audios:
@@ -357,7 +359,7 @@ def mfcc(audios, sr, n_mfcc=40, n_mels=128, n_fft=2048, hop_length=512):
 
     return np.array(batch_results)
 
-def mel_spectrogram(audios, sr, n_fft=2048, hop_length=256, n_mels=256):
+def mel_spectrogram(audios, sr, n_fft=2048, hop_length=512, n_mels=128):
     batch_results = []
 
     for y in audios:
@@ -366,7 +368,7 @@ def mel_spectrogram(audios, sr, n_fft=2048, hop_length=256, n_mels=256):
             sr=sr,
             n_fft=n_fft,
             hop_length=hop_length,
-            n_mels=n_mels
+            n_mels=n_mels,
         )
         
         S_db = librosa.power_to_db(S, ref=1.0, top_db=80)
@@ -380,7 +382,7 @@ def mel_spectrogram(audios, sr, n_fft=2048, hop_length=256, n_mels=256):
         
     return np.array(batch_results)
 
-def spectrogram(audios, n_fft=4096, hop_length=256):
+def spectrogram(audios, n_fft=2048, hop_length=256):
     batch_results = []
 
     for y in audios:
@@ -409,9 +411,9 @@ def manage_normalization(presets, should_normalize):
     funlog = log_normalize if should_normalize else log_denormalize
     return {
         # LFO 1 y 2
-        "lfo1_rate": funlog(presets['lfo1_rate'], 0.01, 20),
+        "lfo1_rate": funlog(presets['lfo1_rate'], 0.000001, 10),
         "lfo1_shape": fun(presets['lfo1_shape'], 0, 4),
-        "lfo2_rate": funlog(presets['lfo2_rate'], 0.01, 20),
+        "lfo2_rate": funlog(presets['lfo2_rate'], 0.000001, 10),
         "lfo2_shape": fun(presets['lfo2_shape'], 0, 4),
 
         # Osc 1
