@@ -333,7 +333,7 @@ def from_preset_to_matrix(preset):
 
     
 
-def mfcc(audios, sr, n_mfcc=30, n_mels=128, n_fft=2048, hop_length=512):
+def mfcc(audios, sr, n_mfcc=42, n_mels=128, n_fft=2048, hop_length=512):
     batch_results = []
 
     for audio in audios:
@@ -359,7 +359,9 @@ def mfcc(audios, sr, n_mfcc=30, n_mels=128, n_fft=2048, hop_length=512):
 
     return np.array(batch_results)
 
+# def mel_spectrogram(audios, sr, n_fft=4096, hop_length=256, n_mels=512):
 def mel_spectrogram(audios, sr, n_fft=2048, hop_length=512, n_mels=128):
+
     batch_results = []
 
     for y in audios:

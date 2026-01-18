@@ -22,12 +22,12 @@ def evaluate_presets(data):
     # env_target = librosa.feature.rms(y=target_audio, frame_length=256)
     # env_loss = np.mean(np.abs(env_synth - env_target))
 
-    current_A, current_B, current_C = ( 
-        mel_spectrogram(audio, sr=SAMPLE_RATE, n_fft=1024, hop_length=128, n_mels=64), 
-        mel_spectrogram(audio, sr=SAMPLE_RATE, n_fft=2048, hop_length=256, n_mels=128),
-        # mel_spectrogram(audio, sr=SAMPLE_RATE, n_fft=4096, hop_length=512, n_mels=256) 
-        0
+    current_A, current_B, current_C = (
+        mel_spectrogram(audio, sr=SAMPLE_RATE),0,0
+        # mel_spectrogram(audio, sr=SAMPLE_RATE, n_fft=1024, hop_length=128, n_mels=64), 
+        # mel_spectrogram(audio, sr=SAMPLE_RATE, n_fft=2048, hop_length=256, n_mels=256),
+        # mel_spectrogram(audio, sr=SAMPLE_RATE, n_fft=4096, hop_length=512, n_mels=256)
     )
 
-    return 0.6*MSE(current_A, target_A) + 0.4*MSE(current_B, target_B) #+ 0.2*MSE(current_C, target_C)
-    # return MSE(current_C, target_C)
+    # return 0.2*MSE(current_A, target_A) + 0.4*MSE(current_B, target_B) + 0.4*MSE(current_C, target_C)
+    return MSE(current_A, target_A)
