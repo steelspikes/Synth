@@ -5,21 +5,21 @@
             "duration": 2
         },
         "osc1": {
-            "shape": 0.5,
-            "volume": 1,
+            "shape": 0.75,
+            "volume": 0,
             "phase": 0,
             "frequency": 349.23,
             "volume_mod_depth": 0,
-            "pitch_mod_depth": 0,
+            "pitch_mod_depth": 0.05,
             "lfo_choose": 0
         },
         "osc2": {
-            "shape": 0.5,
-            "volume": 1,
+            "shape": 0.75,
+            "volume": 0.7,
             "phase": 0,
-            "frequency": 354,
+            "frequency": 355,
             "volume_mod_depth": 0,
-            "pitch_mod_depth": 0,
+            "pitch_mod_depth": 0.05,
             "lfo_choose": 0
         },
         "osc3": {
@@ -45,7 +45,7 @@
             "volume": 0
         },
         "lfo1": {
-            "rate": 6,
+            "rate": 0,
             "shape": 0
         },
         "lfo2": {
@@ -53,24 +53,24 @@
             "shape": 0
         },
         "amplitude_envelope": {
-            "attack": 0.05,
-            "decay": 0,
-            "sustain": 0.9,
-            "release": 0.4
+            "attack": 0.02,
+            "decay": 0.3,
+            "sustain": 1,
+            "release": 0.2
         },
         "filter_envelope": {
-            "attack": 0,
-            "decay": 0,
-            "sustain": 0,
-            "release": 0
+            "attack": 0.01,
+            "decay": 0.4,
+            "sustain": 0.6,
+            "release": 0.2
         },
         "filter": {
-            "cutoff": 10000,
+            "cutoff": 1500,
             "type": 1,
-            "q": 0.7,
+            "q": 1.4,
             "cutoff_mod_depth": 0,
             "lfo_choose": 0,
-            "envelope_depth": 0
+            "envelope_depth": 0.5
         }
     }
 ]

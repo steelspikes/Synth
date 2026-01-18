@@ -13,8 +13,8 @@ class Synth:
         self.duration = duration
 
     def process_audio(self):
-        lfo1 = LFO(rate_hz=self.presets['lfo1_rate'], shape=self.presets['lfo1_shape'])
-        lfo2 = LFO(rate_hz=self.presets['lfo2_rate'], shape=self.presets['lfo2_shape'])
+        lfo1 = LFO(rate_hz=self.presets['lfo1_rate'], shape=np.zeros(self.presets['lfo1_rate'].shape[0]))
+        lfo2 = LFO(rate_hz=self.presets['lfo2_rate'], shape=np.zeros(self.presets['lfo1_rate'].shape[0]))
 
         lfo_signal = lfo1.process(int(self.sample_rate * self.duration))
 
@@ -54,17 +54,17 @@ class Synth:
             pitch_mod_depth=self.presets['osc3_pdepth']
         )
 
-        osc4 = Oscillator(
-            shape=self.presets['osc4_shape'], 
-            phase=self.presets['osc4_phase'], 
-            volume=self.presets['osc4_volume'], 
-            initial_freq=self.presets['osc4_freq'], 
-            lfo_signal=lfo_signal,
-            sample_rate=self.sample_rate, 
-            duration=self.duration,
-            volume_mod_depth=self.presets['osc4_vdepth'],
-            pitch_mod_depth=self.presets['osc4_pdepth']
-        )
+        # osc4 = Oscillator(
+        #     shape=self.presets['osc4_shape'], 
+        #     phase=self.presets['osc4_phase'], 
+        #     volume=self.presets['osc4_volume'], 
+        #     initial_freq=self.presets['osc4_freq'], 
+        #     lfo_signal=lfo_signal,
+        #     sample_rate=self.sample_rate, 
+        #     duration=self.duration,
+        #     volume_mod_depth=self.presets['osc4_vdepth'],
+        #     pitch_mod_depth=self.presets['osc4_pdepth']
+        # )
 
         oscnoise = NoiseOscillator(
             volume=self.presets['oscnoise_volume'],
@@ -99,7 +99,7 @@ class Synth:
             sample_rate=self.sample_rate
         )
 
-        out = osc1.process() + osc2.process() + osc3.process() + osc4.process() + oscnoise.process()
+        out = osc1.process() + osc2.process() + osc3.process() + oscnoise.process()
         out = biquad_filter.process(out)
 
         envelope_amp_signal = envelope_amp.process(self.duration)
@@ -109,9 +109,9 @@ class Synth:
         # if peak > 0:
         #     out = out / peak
 
-        rms_target = 0.1
-        rms_actual = np.sqrt(np.mean(out**2))
-        scale = rms_target / (rms_actual + 1e-8)
-        out = out * scale
+        # rms_target = 0.1
+        # rms_actual = np.sqrt(np.mean(out**2))
+        # scale = rms_target / (rms_actual + 1e-8)
+        # out = out * scale
 
         return out
