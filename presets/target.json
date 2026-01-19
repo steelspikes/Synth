@@ -45,7 +45,7 @@
             "volume": 0
         },
         "lfo1": {
-            "rate": 0,
+            "rate": 3,
             "shape": 0
         },
         "lfo2": {
