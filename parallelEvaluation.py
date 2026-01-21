@@ -31,5 +31,5 @@ def evaluate_presets(data):
 
         return 0.2*MSE(current_A, target_A) + 0.4*MSE(current_B, target_B) + 0.4*MSE(current_C, target_C)
     else:
-        current_B = mel_spectrogram(audio, sr=SAMPLE_RATE, n_fft=4096, hop_length=256, n_mels=256)
+        current_B = mel_spectrogram(audio, sr=SAMPLE_RATE, n_fft=2048, hop_length=256, n_mels=128)
         return MSE(current_B, target_B)
