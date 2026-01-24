@@ -13,23 +13,21 @@ class Synth:
         self.duration = duration
 
     def process_audio(self):
-        # lfo1 = LFO(rate_hz=self.presets['lfo1_rate'], shape=np.zeros(self.presets['lfo1_rate'].shape[0]))
-        # lfo2 = LFO(rate_hz=self.presets['lfo2_rate'], shape=np.zeros(self.presets['lfo1_rate'].shape[0]))
+        lfo1 = LFO(rate_hz=self.presets['lfo1_rate'], shape=self.presets['lfo1_shape'])
+        lfo2 = LFO(rate_hz=self.presets['lfo2_rate'], shape=self.presets['lfo2_shape'])
 
-        # lfo_signal = lfo1.process(int(self.sample_rate * self.duration))
+        lfo_signal = lfo1.process(int(self.sample_rate * self.duration))
 
         osc1 = Oscillator(
             shape=self.presets['osc1_shape'], 
             phase=self.presets['osc1_phase'], 
             volume=self.presets['osc1_volume'], 
             initial_freq=self.presets['osc1_freq'], 
-            # lfo_signal=lfo_signal,
+            lfo_signal=lfo_signal,
             sample_rate=self.sample_rate, 
             duration=self.duration,
-            # volume_mod_depth=self.presets['osc1_vdepth'],
-            # pitch_mod_depth=self.presets['osc1_pdepth']
-            volume_mod_depth=np.zeros(self.presets['osc4_shape'].shape[0]),
-            pitch_mod_depth=np.zeros(self.presets['osc4_shape'].shape[0])
+            pitch_mod_depth=self.presets['lfo1_pdepth'],
+            volume_mod_depth=self.presets['lfo1_vdepth']
         )
 
         osc2 = Oscillator(
@@ -37,13 +35,11 @@ class Synth:
             phase=self.presets['osc2_phase'], 
             volume=self.presets['osc2_volume'], 
             initial_freq=self.presets['osc2_freq'], 
-            # lfo_signal=lfo_signal,
+            lfo_signal=lfo_signal,
             sample_rate=self.sample_rate, 
             duration=self.duration,
-            # volume_mod_depth=self.presets['osc2_vdepth'],
-            # pitch_mod_depth=self.presets['osc2_pdepth']
-            volume_mod_depth=np.zeros(self.presets['osc4_shape'].shape[0]),
-            pitch_mod_depth=np.zeros(self.presets['osc4_shape'].shape[0])
+            pitch_mod_depth=self.presets['lfo1_pdepth'],
+            volume_mod_depth=self.presets['lfo1_vdepth']
         )
 
         osc3 = Oscillator(
@@ -51,13 +47,11 @@ class Synth:
             phase=self.presets['osc3_phase'], 
             volume=self.presets['osc3_volume'], 
             initial_freq=self.presets['osc3_freq'], 
-            # lfo_signal=lfo_signal,
+            lfo_signal=lfo_signal,
             sample_rate=self.sample_rate, 
             duration=self.duration,
-            # volume_mod_depth=self.presets['osc3_vdepth'],
-            # pitch_mod_depth=self.presets['osc3_pdepth']
-            volume_mod_depth=np.zeros(self.presets['osc4_shape'].shape[0]),
-            pitch_mod_depth=np.zeros(self.presets['osc4_shape'].shape[0])
+            pitch_mod_depth=self.presets['lfo1_pdepth'],
+            volume_mod_depth=self.presets['lfo1_vdepth']
         )
 
         osc4 = Oscillator(
@@ -65,13 +59,11 @@ class Synth:
             phase=self.presets['osc4_phase'], 
             volume=self.presets['osc4_volume'], 
             initial_freq=self.presets['osc4_freq'], 
-            # lfo_signal=lfo_signal,
+            lfo_signal=lfo_signal,
             sample_rate=self.sample_rate, 
             duration=self.duration,
-            # volume_mod_depth=self.presets['osc4_vdepth'],
-            # pitch_mod_depth=self.presets['osc4_pdepth']
-            volume_mod_depth=np.zeros(self.presets['osc4_shape'].shape[0]),
-            pitch_mod_depth=np.zeros(self.presets['osc4_shape'].shape[0])
+            pitch_mod_depth=self.presets['lfo1_pdepth'],
+            volume_mod_depth=self.presets['lfo1_vdepth']
         )
 
         oscnoise = NoiseOscillator(
@@ -92,10 +84,10 @@ class Synth:
             base_cutoff_hz=self.presets['base_cutoff_hz'], 
             filter_type=self.presets['filter_type'], 
             base_q=self.presets['base_q'],
-            # lfo_instance=lfo2,
+            lfo_instance=lfo2,
             envelope=envelope_filter,
             envelope_depth=self.presets['envelope_depth'],
-            cutoff_mod_depth=np.zeros(self.presets['base_cutoff_hz'].shape[0]),
+            cutoff_mod_depth=self.presets['cutoff_mod_depth'],
             sample_rate=self.sample_rate
         )
 
