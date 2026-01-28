@@ -1,4 +1,3 @@
-from LFO import LFO
 from BiquadFilter import BiquadFilter
 from NoiseOscillator import NoiseOscillator
 from Envelope import Envelope
@@ -13,51 +12,31 @@ class Synth:
         self.duration = duration
 
     def process_audio(self):
-        # lfo1 = LFO(rate_hz=self.presets['lfo1_rate'], shape=np.zeros(self.presets['lfo1_rate'].shape[0]))
-        # lfo2 = LFO(rate_hz=self.presets['lfo2_rate'], shape=np.zeros(self.presets['lfo1_rate'].shape[0]))
-
-        # lfo_signal = lfo1.process(int(self.sample_rate * self.duration))
-
         osc1 = Oscillator(
             shape=self.presets['osc1_shape'], 
             phase=self.presets['osc1_phase'], 
             volume=self.presets['osc1_volume'], 
             initial_freq=self.presets['osc1_freq'], 
-            # lfo_signal=lfo_signal,
             sample_rate=self.sample_rate, 
-            duration=self.duration,
-            # volume_mod_depth=self.presets['osc1_vdepth'],
-            # pitch_mod_depth=self.presets['osc1_pdepth']
-            volume_mod_depth=np.zeros(self.presets['osc4_shape'].shape[0]),
-            pitch_mod_depth=np.zeros(self.presets['osc4_shape'].shape[0])
+            duration=self.duration
         )
 
         osc2 = Oscillator(
             shape=self.presets['osc2_shape'], 
             phase=self.presets['osc2_phase'], 
             volume=self.presets['osc2_volume'], 
-            initial_freq=self.presets['osc2_freq'], 
-            # lfo_signal=lfo_signal,
+            initial_freq=self.presets['osc2_freq'],
             sample_rate=self.sample_rate, 
-            duration=self.duration,
-            # volume_mod_depth=self.presets['osc2_vdepth'],
-            # pitch_mod_depth=self.presets['osc2_pdepth']
-            volume_mod_depth=np.zeros(self.presets['osc4_shape'].shape[0]),
-            pitch_mod_depth=np.zeros(self.presets['osc4_shape'].shape[0])
+            duration=self.duration
         )
 
         osc3 = Oscillator(
             shape=self.presets['osc3_shape'], 
             phase=self.presets['osc3_phase'], 
             volume=self.presets['osc3_volume'], 
-            initial_freq=self.presets['osc3_freq'], 
-            # lfo_signal=lfo_signal,
+            initial_freq=self.presets['osc3_freq'],
             sample_rate=self.sample_rate, 
-            duration=self.duration,
-            # volume_mod_depth=self.presets['osc3_vdepth'],
-            # pitch_mod_depth=self.presets['osc3_pdepth']
-            volume_mod_depth=np.zeros(self.presets['osc4_shape'].shape[0]),
-            pitch_mod_depth=np.zeros(self.presets['osc4_shape'].shape[0])
+            duration=self.duration
         )
 
         osc4 = Oscillator(
@@ -65,13 +44,8 @@ class Synth:
             phase=self.presets['osc4_phase'], 
             volume=self.presets['osc4_volume'], 
             initial_freq=self.presets['osc4_freq'], 
-            # lfo_signal=lfo_signal,
             sample_rate=self.sample_rate, 
             duration=self.duration,
-            # volume_mod_depth=self.presets['osc4_vdepth'],
-            # pitch_mod_depth=self.presets['osc4_pdepth']
-            volume_mod_depth=np.zeros(self.presets['osc4_shape'].shape[0]),
-            pitch_mod_depth=np.zeros(self.presets['osc4_shape'].shape[0])
         )
 
         oscnoise = NoiseOscillator(
@@ -92,10 +66,8 @@ class Synth:
             base_cutoff_hz=self.presets['base_cutoff_hz'], 
             filter_type=self.presets['filter_type'], 
             base_q=self.presets['base_q'],
-            # lfo_instance=lfo2,
             envelope=envelope_filter,
             envelope_depth=self.presets['envelope_depth'],
-            cutoff_mod_depth=np.zeros(self.presets['base_cutoff_hz'].shape[0]),
             sample_rate=self.sample_rate
         )
 
@@ -112,14 +84,5 @@ class Synth:
 
         envelope_amp_signal = envelope_amp.process(self.duration)
         out = out * envelope_amp_signal
-
-        # peak = np.max(np.abs(out))
-        # if peak > 0:
-        #     out = out / peak
-
-        # rms_target = 0.1
-        # rms_actual = np.sqrt(np.mean(out**2))
-        # scale = rms_target / (rms_actual + 1e-8)
-        # out = out * scale
 
         return out

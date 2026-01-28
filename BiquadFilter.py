@@ -67,21 +67,18 @@ def biquad_process_multi_preset(input_wave, modulated_cutoff, modulated_q, filte
     return output_wave
 
 class BiquadFilter:
-    def __init__(self, sample_rate=44100, base_cutoff_hz=1000, base_q=0.707, filter_type=0, lfo_instance = None, envelope_depth = 0, envelope = None, cutoff_mod_depth = 0):
+    def __init__(self, sample_rate=44100, base_cutoff_hz=1000, base_q=0.707, filter_type=0, envelope_depth = 0, envelope = None):
         self.sample_rate = sample_rate
         self.base_cutoff_hz = base_cutoff_hz.astype(np.float32)
         self.base_q = base_q.astype(np.float32)
         self.filter_type = filter_type.astype(np.float32)
-        self.lfo_instance = lfo_instance
         self.envelope = envelope
         self.envelope_depth = envelope_depth.astype(np.float32)
-        self.cutoff_mod_depth = cutoff_mod_depth.astype(np.float32) #np.zeros(self.base_cutoff_hz.shape[0]) #cutoff_mod_depth.astype(np.float32)
         
     def process(self, input_wave):
         presets = input_wave.shape[0]
         num_samples = input_wave.shape[1]
 
-        # modulated_cutoff = np.exp(self.base_cutoff_hz.astype(np.float32))
         modulated_cutoff = self.base_cutoff_hz.astype(np.float32)
         modulated_cutoff = np.expand_dims(modulated_cutoff, axis=1)
         modulated_cutoff = np.broadcast_to(modulated_cutoff, (presets, num_samples))
@@ -93,16 +90,6 @@ class BiquadFilter:
             octave_range = 5.0
             modulated_cutoff = modulated_cutoff * (2 ** (env_signal * octave_range * np.expand_dims(self.envelope_depth, axis=1).astype(np.float32)))
 
-        if self.lfo_instance is not None:
-            lfo_signal = self.lfo_instance.process(num_samples) 
-            octave_range = np.expand_dims(self.cutoff_mod_depth, axis=1).astype(np.float32) * 1.0
-            mod_factor = np.pow(2.0, lfo_signal * octave_range)
-            modulated_cutoff = modulated_cutoff * mod_factor
-
         modulated_cutoff = np.clip(modulated_cutoff, min=20.0, max=20_000)
-
-        # import matplotlib.pyplot as plt
-        # plt.plot(modulated_cutoff[0])
-        # plt.show()
        
         return biquad_process_multi_preset(input_wave, modulated_cutoff, self.base_q, self.filter_type, self.sample_rate)
