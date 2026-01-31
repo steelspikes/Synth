@@ -88,10 +88,6 @@ class BiquadFilter:
         if self.envelope is not None:
             env_signal = self.envelope.process(num_samples / self.sample_rate, num_samples)
             octave_range = 5.0
-            print("samples audio", input_wave.shape)
-            print("modulated_cutoff:", modulated_cutoff.shape)
-            print("env_signal:", env_signal.shape)
-            print("self.envelope_depth:", self.envelope_depth.shape)
             modulated_cutoff = modulated_cutoff * (2 ** (env_signal * octave_range * np.expand_dims(self.envelope_depth, axis=1).astype(np.float32)))
 
         modulated_cutoff = np.clip(modulated_cutoff, min=20.0, max=20_000)
