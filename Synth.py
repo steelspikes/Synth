@@ -82,7 +82,7 @@ class Synth:
         out = osc1.process() + osc2.process() + osc3.process() + osc4.process() + oscnoise.process()
         out = biquad_filter.process(out)
 
-        envelope_amp_signal = envelope_amp.process(self.duration)
+        envelope_amp_signal = envelope_amp.process(self.duration, out.shape[1])
         out = out * envelope_amp_signal
 
         return out

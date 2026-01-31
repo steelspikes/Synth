@@ -3,14 +3,14 @@ import numpy as np
 class Envelope:
     def __init__(self, sample_rate=44100, attack=0.01, decay=0.3, sustain=0.5, release=0.2):
         self.sample_rate = sample_rate
-        self.attack = attack
-        self.decay = decay
-        self.sustain = sustain  # Cambié el valor por defecto a 0.5 para que sea más realista
-        self.release = release
+        self.attack = attack.astype(np.float32)
+        self.decay = decay.astype(np.float32)
+        self.sustain = sustain.astype(np.float32)  # Cambié el valor por defecto a 0.5 para que sea más realista
+        self.release = release.astype(np.float32)
 
-    def process(self, total_duration_sec):
+    def process(self, total_duration_sec, n_samples):
         presets = self.attack.shape[0]
-        n_samples = int(self.sample_rate * total_duration_sec)
+        # n_samples = int(self.sample_rate * total_duration_sec)
         x = np.linspace(0, 1.0, n_samples, dtype=np.float32)
         x = np.expand_dims(x, axis=0)
         x = np.broadcast_to(x, (presets, n_samples))
