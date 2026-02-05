@@ -4,6 +4,7 @@ import json
 import librosa
 from globals import SAMPLE_RATE, DURATION, PROCESSORS
 from scipy import signal
+from scipy.signal import find_peaks
 
 NUM_PARAMETERS = 42
 
@@ -499,3 +500,35 @@ def pretty_print(obj, indent=0):
         print(f"{spacing}]")
     else:
         print(f"{spacing}{obj}")
+
+def get_audio(audio_path, top_db=20):
+    y, _sr = librosa.load(audio_path, sr=SAMPLE_RATE)
+    y = np.array(y, dtype=np.float64)
+    y, _ = librosa.effects.trim(y, top_db=top_db)
+
+    rms_target = 0.1
+    rms_actual = np.sqrt(np.mean(y**2))
+    scale = rms_target / (rms_actual + 1e-8)
+    return y * scale
+
+def split_audio(audio, prominence=0.01):
+    win_size = int(0.02 * SAMPLE_RATE)
+
+    rectified_signal = np.abs(audio)
+    window = np.ones(win_size) / win_size
+    envelope = np.convolve(rectified_signal, window, mode='same')
+
+    minimals, _ = find_peaks(-envelope, prominence=prominence)
+    minimals = np.concatenate((np.array([0]), minimals))
+
+    minimals = minimals + (win_size // 2)
+
+    audios = []
+    
+    for i in range(minimals.shape[0]):
+        if i < minimals.shape[0] - 1:
+            audios.append(audio[minimals[i] : minimals[i+1]])
+        else:
+            audios.append(audio[minimals[i]:])
+
+    return audios
