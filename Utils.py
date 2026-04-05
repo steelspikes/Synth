@@ -4,7 +4,7 @@ import json
 import librosa
 from globals import SAMPLE_RATE, DURATION, PROCESSORS
 from scipy import signal
-from scipy.signal import find_peaks
+from scipy.signal import find_peaks, hilbert
 
 NUM_PARAMETERS = 42
 
@@ -403,8 +403,20 @@ def spectrogram(audios, n_fft=2048, hop_length=256):
         
     return np.array(batch_results)
 
+# def MSE(predictions, target):
+#     return np.mean(np.abs(predictions - target), axis=(1, 2))
+
 def MSE(predictions, target):
-    return np.mean(np.abs(predictions - target), axis=(1, 2))
+    # 1. Encontrar el tamaño mínimo en la dimensión del tiempo (la última)
+    min_time = min(predictions.shape[-1], target.shape[-1])
+    
+    # 2. Recortar ambos al mismo tamaño usando slicing
+    # El '...' significa "todas las dimensiones anteriores"
+    preds_cut = predictions[..., :min_time]
+    target_cut = target[..., :min_time]
+    
+    # 3. Calcular el error con los arrays ya igualados
+    return np.mean(np.abs(preds_cut - target_cut), axis=(1, 2))
 
 def manage_normalization(presets, should_normalize):
     MIN_FREQ = 20
@@ -511,14 +523,14 @@ def get_audio(audio_path, top_db=20):
     scale = rms_target / (rms_actual + 1e-8)
     return y * scale
 
-def split_audio(audio, prominence=0.01):
-    win_size = int(0.02 * SAMPLE_RATE)
+def split_audio____(audio, prominence=0.01, win_size_ms=0.02):
+    win_size = int(win_size_ms * SAMPLE_RATE)
 
     rectified_signal = np.abs(audio)
     window = np.ones(win_size) / win_size
     envelope = np.convolve(rectified_signal, window, mode='same')
 
-    minimals, _ = find_peaks(-envelope, prominence=prominence)
+    minimals, _ = find_peaks(-envelope, prominence=prominence, width=10, distance=2000)
     minimals = np.concatenate((np.array([0]), minimals))
 
     minimals = minimals + (win_size // 2)
@@ -531,4 +543,37 @@ def split_audio(audio, prominence=0.01):
         else:
             audios.append(audio[minimals[i]:])
 
+    return audios
+
+import librosa
+import numpy as np
+
+def split_audio(audio, sr, backtrack=True, delta=0.1):
+    # 1. Detectar los onsets (momentos de inicio de cada nota)
+    # units='samples' nos devuelve el índice exacto en el array
+    # backtrack=True ajusta el punto un poco hacia atrás para no comerse el ataque
+    onsets = librosa.onset.onset_detect(y=audio, sr=sr, units='samples', backtrack=backtrack, delta=delta)
+    
+    # 2. Asegurarnos de incluir el inicio y el final del audio para no perder trozos
+    # Si el primer onset no es 0, lo agregamos
+    if len(onsets) == 0 or onsets[0] != 0:
+        onsets = np.concatenate(([0], onsets))
+    
+    # Agregamos el final del audio como último punto de corte
+    onsets = np.concatenate((onsets, [len(audio)]))
+    
+    audios = []
+    
+    # 3. Recortar el audio nota por nota
+    for i in range(len(onsets) - 1):
+        inicio = onsets[i]
+        fin = onsets[i+1]
+        
+        # Extraemos el segmento
+        segmento = audio[inicio:fin]
+        
+        # Filtro de seguridad: si el segmento es demasiado corto (ej. ruido), lo ignoramos
+        if len(segmento) > (sr * 0.05): # mínimo 50ms
+            audios.append(segmento)
+            
     return audios

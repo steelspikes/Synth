@@ -22,10 +22,12 @@ def render_presets(presets, duration=0):
 def evaluate_target(audio):
     return mel_spectrogram(audio, sr=SAMPLE_RATE, n_fft=2048, hop_length=256, n_mels=128)
 
-def search_with_DE(target_C, duration, maxiter=150, popsize=10, mutation=(0.5, 1), recombination=0.7, tol=1e-4, strategy='rand1bin', disp=False):
+def search_with_DE(target_C, duration, maxiter=150, popsize=10, mutation=(0.6, 0.9), recombination=0.8, tol=1e-4, strategy='rand1bin', disp=False, x0=None):
     bounds = [(0, 1)] * len(PARAM_NAMES)
 
     with Pool(PROCESSORS) as pool:
+        episodes = []
+
         def get_fitness(solutions):
             solutions = np.array(solutions).T
             solutions_splitted = np.array_split(solutions, PROCESSORS)
@@ -33,6 +35,10 @@ def search_with_DE(target_C, duration, maxiter=150, popsize=10, mutation=(0.5, 1
             
             solutions_evaluated = pool.map(evaluate_presets, presets_splitted)
             return np.concatenate(solutions_evaluated).tolist()
+        
+        def callback(xk, convergence):
+            error_actual = evaluate_presets((denormalize_preset(from_matrix_to_preset(np.array([xk]))), target_C, duration))
+            episodes.append(error_actual[0])
             
         result = differential_evolution(
             get_fitness,
@@ -47,15 +53,19 @@ def search_with_DE(target_C, duration, maxiter=150, popsize=10, mutation=(0.5, 1
             disp=disp,
             workers=1,
             vectorized=True,
-            strategy=strategy
+            strategy=strategy,
+            callback=callback,
+            x0=x0
         )
 
         x_best = result.x
 
-        return x_best
+        return x_best, episodes
 
-def search_with_CMA(target_C, duration, x0, repeat_times=3, sigma0=0.04, popsize=30, tolfun=1e-3, tolx=1e-3, tolfunhist=1e-3):
+def search_with_CMA(target_C, duration, x0, repeat_times=3, sigma0=0.08, popsize=30, tolfun=1e-3, tolx=1e-3, tolfunhist=1e-3):
     with Pool(PROCESSORS) as pool:
+        episodes = []
+
         def get_fitness(solutions):
             solutions = np.array(solutions)
             solutions_splitted = np.array_split(solutions, PROCESSORS)
@@ -86,6 +96,8 @@ def search_with_CMA(target_C, duration, x0, repeat_times=3, sigma0=0.04, popsize
                 best_idx = np.argmin(fitnesses)          # índice del mejor fitness
                 best_fitness = fitnesses[best_idx]       # fitness correspondiente
 
+                episodes.append(best_fitness)
+
                 # if gen % 100 == 0:
                 #     print("Gen", gen, "Mejor fitness:", best_fitness, "Sigma", es.sigma, "Restart", i + 1)
 
@@ -95,4 +107,4 @@ def search_with_CMA(target_C, duration, x0, repeat_times=3, sigma0=0.04, popsize
 
             bestever.update(es.best)
         
-        return bestever.get()[0]
+        return bestever.get()[0], episodes
