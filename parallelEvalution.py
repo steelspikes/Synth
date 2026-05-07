@@ -1,5 +1,5 @@
 from Synth import Synth
-from Utils import mel_spectrogram, MSE
+from Utils import mel_spectrogram, MAE
 from globals import SAMPLE_RATE
 import numpy as np
 
@@ -14,4 +14,4 @@ def evaluate_presets(data):
     audio = synth.process_audio().astype(np.float64)
 
     current_M = mel_spectrogram(audio, sr=SAMPLE_RATE, n_fft=2048, hop_length=256, n_mels=128)
-    return MSE(current_M, target_M)
+    return MAE(current_M, target_M)

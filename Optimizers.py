@@ -1,7 +1,6 @@
 
 import numpy as np
 from globals import PROCESSORS, SAMPLE_RATE
-import matplotlib.pyplot as plt
 from Utils import from_matrix_to_preset, denormalize_preset, PARAM_NAMES
 import numpy as np
 import cma

@@ -2,8 +2,6 @@ from BiquadFilter import BiquadFilter
 from NoiseOscillator import NoiseOscillator
 from Envelope import Envelope
 from Oscillator import Oscillator
-import numpy as np
-from Utils import denormalize
 
 class Synth:
     def __init__(self, sample_rate=44100, duration=0, presets=None):
