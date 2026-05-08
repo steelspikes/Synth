@@ -1,4 +1,4 @@
-from Utils import create_morphed_wave
+from Libs.Utils import create_morphed_wave
 import numpy as np
 
 class Oscillator:

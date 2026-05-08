@@ -1,5 +1,5 @@
 import numpy as np
-from Utils import denormalize
+from Libs.Utils import denormalize
 
 class NoiseOscillator:
     def __init__(self, sample_rate=44100, duration = 0, volume = 0, shape=0):

@@ -1,14 +1,14 @@
 
 import numpy as np
-from globals import PROCESSORS, SAMPLE_RATE
-from Utils import from_matrix_to_preset, denormalize_preset, PARAM_NAMES
+from Libs.globals import PROCESSORS, SAMPLE_RATE
+from Libs.Utils import from_matrix_to_preset, denormalize_preset, PARAM_NAMES
 import numpy as np
 import cma
 from multiprocessing import Pool
-from parallelEvaluation import evaluate_presets
+from Libs.parallelEvaluation import evaluate_presets
 from scipy.optimize import differential_evolution
-from Synth import Synth
-from Utils import mel_spectrogram
+from Synth.main import Synth
+from Libs.Utils import mel_spectrogram
 
 def render_presets(presets, duration=0):
     synth = Synth(
@@ -61,7 +61,7 @@ def search_with_DE(target_C, duration, maxiter=150, popsize=10, mutation=(0.6, 0
 
         return x_best, episodes
 
-def search_with_CMA(target_C, duration, x0, repeat_times=3, sigma0=0.08, popsize=30, tolfun=1e-3, tolx=1e-3, tolfunhist=1e-3):
+def search_with_CMA(target_C, duration, x0, repeat_times=3, sigma0=0.08, popsize=30, tolfun=1e-3, tolx=1e-3, tolfunhist=1e-3, disp=False):
     with Pool(PROCESSORS) as pool:
         episodes = []
 
@@ -97,8 +97,8 @@ def search_with_CMA(target_C, duration, x0, repeat_times=3, sigma0=0.08, popsize
 
                 episodes.append(best_fitness)
 
-                # if gen % 100 == 0:
-                #     print("Gen", gen, "Mejor fitness:", best_fitness, "Sigma", es.sigma, "Restart", i + 1)
+                if disp and gen % 100 == 0:
+                    print("Gen", gen, "Mejor fitness:", best_fitness, "Sigma", es.sigma, "Restart", i + 1)
 
                 es.tell(solutions, fitnesses)  # pasar fitness al algoritmo
 

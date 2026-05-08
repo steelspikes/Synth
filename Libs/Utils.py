@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import json
 import librosa
-from globals import SAMPLE_RATE
+from Libs.globals import SAMPLE_RATE
 from scipy import signal
 from scipy.signal import find_peaks
 

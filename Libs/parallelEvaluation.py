@@ -1,6 +1,6 @@
-from Synth import Synth
-from Utils import mel_spectrogram, MAE
-from globals import SAMPLE_RATE
+from Synth.main import Synth
+from Libs.Utils import mel_spectrogram, MAE
+from Libs.globals import SAMPLE_RATE
 import numpy as np
 
 def evaluate_presets(data):

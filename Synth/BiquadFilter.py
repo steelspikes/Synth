@@ -1,8 +1,5 @@
 import numpy as np
 from numba import jit, prange
-# from LFO import LFO
-# import matplotlib.pyplot as plt
-# from Envelope import Envelope
 
 @jit(nopython=True, parallel=True)
 def biquad_process_multi_preset(input_wave, modulated_cutoff, modulated_q, filter_type_code, sample_rate):
