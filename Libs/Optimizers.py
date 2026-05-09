@@ -11,6 +11,7 @@ from Synth.main import Synth
 from Libs.Utils import mel_spectrogram
 
 def render_presets(presets, duration=0):
+    """Renderiza un batch de presets y devuelve el audio generado."""
     synth = Synth(
         sample_rate=SAMPLE_RATE,
         duration=duration,
@@ -19,15 +20,18 @@ def render_presets(presets, duration=0):
     return synth.process_audio().astype(np.float64)
 
 def evaluate_target(audio):
+    """Calcula el mel-spectrograma del audio objetivo con los mismos parámetros que en evaluate_presets."""
     return mel_spectrogram(audio, sr=SAMPLE_RATE, n_fft=2048, hop_length=256, n_mels=128)
 
 def search_with_DE(target_C, duration, maxiter=150, popsize=10, mutation=(0.6, 0.9), recombination=0.8, tol=1e-4, strategy='rand1bin', disp=False, x0=None):
+    """Busca presets con Differential Evolution distribuido en múltiples procesos."""
     bounds = [(0, 1)] * len(PARAM_NAMES)
 
     with Pool(PROCESSORS) as pool:
         episodes = []
 
         def get_fitness(solutions):
+            # DE pasa la población como matriz (params x presets), la transponemos
             solutions = np.array(solutions).T
             solutions_splitted = np.array_split(solutions, PROCESSORS)
             presets_splitted = [(denormalize_preset(from_matrix_to_preset(chunk)), target_C, duration) for chunk in solutions_splitted]
@@ -36,6 +40,7 @@ def search_with_DE(target_C, duration, maxiter=150, popsize=10, mutation=(0.6, 0
             return np.concatenate(solutions_evaluated).tolist()
         
         def callback(xk, convergence):
+            # Guardamos el error del mejor individuo al final de cada generación
             error_actual = evaluate_presets((denormalize_preset(from_matrix_to_preset(np.array([xk]))), target_C, duration))
             episodes.append(error_actual[0])
             
@@ -62,6 +67,7 @@ def search_with_DE(target_C, duration, maxiter=150, popsize=10, mutation=(0.6, 0
         return x_best, episodes
 
 def search_with_CMA(target_C, duration, x0, repeat_times=3, sigma0=0.08, popsize=30, tolfun=1e-3, tolx=1e-3, tolfunhist=1e-3, disp=False):
+    """Busca presets con CMA-ES, con posibilidad de reiniciar desde el mejor punto encontrado."""
     with Pool(PROCESSORS) as pool:
         episodes = []
 

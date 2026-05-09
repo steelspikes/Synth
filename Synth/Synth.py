@@ -10,6 +10,7 @@ class Synth:
         self.duration = duration
 
     def process_audio(self):
+        """Instancia todos los módulos con los presets recibidos y produce el audio final."""
         osc1 = Oscillator(
             shape=self.presets['osc1_shape'], 
             phase=self.presets['osc1_phase'], 
@@ -52,6 +53,7 @@ class Synth:
             duration=self.duration
         )
 
+        # Envelope que modula el cutoff del filtro
         envelope_filter = Envelope(
             attack=self.presets['filter_envelope_attack'], 
             decay=self.presets['filter_envelope_decay'],
@@ -69,6 +71,7 @@ class Synth:
             sample_rate=self.sample_rate
         )
 
+        # Envelope de amplitud final
         envelope_amp = Envelope(
             attack=self.presets['envelope_attack'], 
             decay=self.presets['envelope_decay'],
@@ -77,6 +80,7 @@ class Synth:
             sample_rate=self.sample_rate
         )
 
+        # Suma de osciladores → filtro → envelope de amplitud
         out = osc1.process() + osc2.process() + osc3.process() + osc4.process() + oscnoise.process()
         out = biquad_filter.process(out)
 
