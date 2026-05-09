@@ -5,15 +5,17 @@ class Oscillator:
     def __init__(self, sample_rate = 44100, duration = 2.0, volume = 0, shape = 0, initial_freq = 440, phase = 0):
         self.sample_rate = sample_rate
         self.duration = duration
-        self.shape = shape.astype(np.float32)
+        self.shape = shape.astype(np.float32)        # 0=sine … 4=pulse
         self.initial_freq = initial_freq.astype(np.float32)
         self.pulse_width = 0
-        self.phase = phase.astype(np.float32)
+        self.phase = phase.astype(np.float32)        # offset de fase en [0, 1]
         self.volume = volume.astype(np.float32)
 
     def create_osc(self, freq):
+        """Construye la fase instantánea y genera la forma de onda para el batch."""
         presets = freq.shape[0]
 
+        # Vector de tiempo (segundos) compartido por todos los presets
         t = np.arange(0, int(self.sample_rate * self.duration), dtype=np.float32) / self.sample_rate
         t = np.expand_dims(t, axis=0)
         t = np.broadcast_to(t, (presets, t.shape[1]))
@@ -31,5 +33,6 @@ class Oscillator:
         return create_morphed_wave(np.expand_dims(self.shape, axis=1), phase)
     
     def process(self):
+        """Genera la señal del oscilador escalada por volumen."""
         waveform = self.create_osc(self.initial_freq)
         return waveform * np.expand_dims(self.volume, axis=1)

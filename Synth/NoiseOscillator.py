@@ -8,6 +8,7 @@ class NoiseOscillator:
         self.duration = duration
     
     def white_noise(self, n_samples):
+        """Genera ruido blanco gaussiano y lo replica para cada preset del batch."""
         noise = np.random.randn(n_samples).astype(np.float32)
         noise = np.expand_dims(noise, axis=0)
         return np.broadcast_to(noise, (self.volume.shape[0], n_samples))
@@ -17,6 +18,6 @@ class NoiseOscillator:
         
         w = self.white_noise(num_samples)
         output = w
-        output = output / (np.abs(output).max() + 1e-8)
+        output = output / (np.abs(output).max() + 1e-8)  # normalización pico
             
         return output * np.expand_dims(self.volume, axis=1).astype(np.float32)

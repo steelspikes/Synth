@@ -1,6 +1,7 @@
 import numpy as np
 from numba import jit, prange
 
+# Compilado con Numba para correr en paralelo sobre múltiples presets
 @jit(nopython=True, parallel=True)
 def biquad_process_multi_preset(input_wave, modulated_cutoff, modulated_q, filter_type_code, sample_rate):
     num_presets = modulated_cutoff.shape[0]
@@ -33,7 +34,7 @@ def biquad_process_multi_preset(input_wave, modulated_cutoff, modulated_q, filte
             b1_bpf = 0
             b2_bpf = -alpha
 
-            # Mezclar según filter_type_code
+            # Mezclar según filter_type_code: 0=HPF, 1=BPF, 2=LPF (interpolación continua)
             if filter_code <= 1.0:
                 blend = filter_code
                 b0 = (1.0 - blend) * b0_hpf + blend * b0_bpf
@@ -58,6 +59,7 @@ def biquad_process_multi_preset(input_wave, modulated_cutoff, modulated_q, filte
 
             output_wave[p, n] = y0
 
+            # Actualizamos el estado del filtro (Direct Form I)
             x2, x1 = x1, x0
             y2, y1 = y1, y0
 
@@ -76,6 +78,7 @@ class BiquadFilter:
         presets = input_wave.shape[0]
         num_samples = input_wave.shape[1]
 
+        # Expandimos el cutoff para tener un valor por sample (se modulará si hay envelope)
         modulated_cutoff = self.base_cutoff_hz.astype(np.float32)
         modulated_cutoff = np.expand_dims(modulated_cutoff, axis=1)
         modulated_cutoff = np.broadcast_to(modulated_cutoff, (presets, num_samples))
@@ -83,6 +86,7 @@ class BiquadFilter:
         modulated_cutoff = np.clip(modulated_cutoff, min=20.0, max=self.sample_rate/2 - 1)
 
         if self.envelope is not None:
+            # Modulamos el cutoff en octavas según el envelope
             env_signal = self.envelope.process(num_samples / self.sample_rate, num_samples)
             octave_range = 5.0
             modulated_cutoff = modulated_cutoff * (2 ** (env_signal * octave_range * np.expand_dims(self.envelope_depth, axis=1).astype(np.float32)))

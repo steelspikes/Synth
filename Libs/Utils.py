@@ -8,6 +8,7 @@ from scipy.signal import find_peaks
 
 NUM_PARAMETERS = 42
 
+# Nombres de todos los parámetros del sintetizador, en el orden que usa la matriz de población
 PARAM_NAMES = [
     'osc1_shape', 'osc1_phase', 'osc1_volume', 'osc1_freq',
 
@@ -31,17 +32,20 @@ PARAM_NAMES = [
 
 
 def create_morphed_wave(morph_param, base_phase):
+    """Genera una forma de onda continua interpolando entre sine, triangle, sawtooth, square y pulse."""
     base_phase = base_phase.astype(np.float32)
     morph_param = morph_param.astype(np.float32)
     
     presets = morph_param.shape[0]
     num_waves = 5
+    # Cada forma de onda ocupa una posición entera: 0=sine, 1=tri, 2=saw, 3=square, 4=pulse
     centers = np.linspace(0, num_waves - 1, num_waves, dtype=np.float32)
     centers = np.expand_dims(centers, axis=0)
     centers = np.broadcast_to(centers, (presets, num_waves))
 
     dists = np.abs(morph_param - centers)
 
+    # Peso lineal: vale 1 cuando morph_param está exactamente en el centro y 0 a distancia >= 1
     weights = np.maximum(0, 1.0 - dists)
 
     morphed_wave = np.broadcast_to(np.zeros_like(base_phase), (presets, base_phase.shape[1])).copy()
@@ -68,6 +72,7 @@ def create_morphed_wave(morph_param, base_phase):
     if np.any(w_sq > 0):
         morphed_wave += w_sq * get_square_wave(base_phase, duty=0.5)
 
+    # En la zona 3-4 hacemos un crossfade suave hacia una pulse wave con duty variable
     sigmoid = lambda x: 1 / (1 + np.exp(-x))
     k = 10
     alpha = sigmoid(k * (morph_param - 3))
@@ -98,9 +103,11 @@ def get_square_wave(x, duty=0.5):
     return signal.square(x, duty=duty)
 
 def denormalize(n, v_min, v_max):
+    """Escala n de [0, 1] al rango [v_min, v_max]."""
     return n * (v_max - v_min) + v_min
 
 def normalize(n, v_min, v_max):
+    """Escala n del rango [v_min, v_max] a [0, 1]."""
     return (n - v_min) / (v_max - v_min)
 
 def log_normalize(f, f_min, f_max):
@@ -115,31 +122,9 @@ def log_denormalize(x_norm, f_min, f_max):
     log_f = denormalize(x_norm, log_min, log_max)
     return 10 ** log_f  # Volvemos a Hz
 
-def get_freq_log(freq):
-    freq = np.maximum(freq, 0.1)
-    return np.log(freq)
-
-def plot_spectrum_linear(waveform, sample_rate, title="Espectro de Frecuencia"):
-    if waveform.ndim > 1:
-        waveform = waveform.flatten()
-
-    N = len(waveform)
-    fft_data = np.fft.rfft(waveform)
-    
-    magnitude = np.abs(fft_data)
-    
-    freqs = np.fft.rfftfreq(N, d=1/sample_rate)
-
-    plt.figure(figsize=(10, 6))
-    plt.plot(freqs, magnitude)
-    plt.title(title)
-    plt.xlabel('Frecuencia (Hz)')
-    plt.ylabel('Amplitud')
-    plt.grid(True, ls='-', alpha=0.5)
-    plt.xlim(0, sample_rate / 2)
-    plt.show()
 
 def load_parameters_file(name):
+    """Carga un archivo JSON de presets y devuelve un dict de arrays numpy, uno por parámetro."""
     with open(f'presets/{name}', 'r', encoding='utf-8') as file:
         parameters_file = json.load(file)
 
@@ -169,11 +154,6 @@ def load_parameters_file(name):
     base_q = []
     filter_type = []
     envelope_depth = []
-    cutoff_mod_depth = []
-
-    lfo1_rate = []
-
-    lfo2_rate = []
 
     envelope_decay = []
     envelope_attack = []
@@ -211,12 +191,6 @@ def load_parameters_file(name):
         base_cutoff_hz.append(preset['filter']['cutoff'])
         base_q.append(preset['filter']['q'])
         filter_type.append(preset['filter']['type'])
-        envelope_depth.append(preset['filter']['envelope_depth'])
-        cutoff_mod_depth.append(preset['filter']['cutoff_mod_depth'])
-
-        lfo1_rate.append(preset['lfo1']['rate'])
-
-        lfo2_rate.append(preset['lfo2']['rate'])
 
         envelope_decay.append(preset['amplitude_envelope']['decay'])
         envelope_attack.append(preset['amplitude_envelope']['attack'])
@@ -255,11 +229,6 @@ def load_parameters_file(name):
         'base_q': np.array(base_q),
         'filter_type': np.array(filter_type),
         'envelope_depth': np.array(envelope_depth),
-        'cutoff_mod_depth': np.array(cutoff_mod_depth),
-
-        'lfo1_rate': np.array(lfo1_rate),
-
-        'lfo2_rate': np.array(lfo2_rate),
 
         'envelope_decay': np.array(envelope_decay),
         'envelope_attack': np.array(envelope_attack),
@@ -273,6 +242,7 @@ def load_parameters_file(name):
     }
 
 def from_matrix_to_preset(matrix_population):
+    """Convierte una matriz (presets x params) a un dict de arrays indexado por nombre de parámetro."""
     params = {
         PARAM_NAMES[i]: matrix_population[:, i]
         for i in range(matrix_population.shape[1])
@@ -281,10 +251,11 @@ def from_matrix_to_preset(matrix_population):
     return params
 
 def from_preset_to_matrix(preset):
+    """Convierte un dict de preset a una matriz (params x presets) ordenada según PARAM_NAMES."""
     return np.array([preset[name] for name in PARAM_NAMES])
 
 def mel_spectrogram(audios, sr, n_fft=2048, hop_length=512, n_mels=128):
-
+    """Calcula el mel-spectrograma normalizado [0, 1] para un batch de audios."""
     batch_results = []
 
     for y in audios:
@@ -297,31 +268,15 @@ def mel_spectrogram(audios, sr, n_fft=2048, hop_length=512, n_mels=128):
         )
         
         S_db = librosa.power_to_db(S, ref=1.0, top_db=80)
-        S_norm = (S_db + 80) / 80
+        S_norm = (S_db + 80) / 80   # mapea el rango [-80, 0] dB a [0, 1]
 
         batch_results.append(S_norm)
         
     return np.array(batch_results)
 
-def spectrogram(audios, n_fft=2048, hop_length=256):
-    batch_results = []
-
-    for y in audios:
-        S = librosa.stft(
-            y=y,
-            n_fft=n_fft,
-            hop_length=hop_length,
-            window='hann'
-        )
-
-        S_db = librosa.amplitude_to_db(np.abs(S), ref=1.0, top_db=80)
-        S_norm = (S_db + 80) / 80
-
-        batch_results.append(S_norm)
-        
-    return np.array(batch_results)
 
 def MAE(predictions, target):
+    """MAE sobre el eje de tiempo y mels; recorta al menor largo si difieren en longitud."""
     min_time = min(predictions.shape[-1], target.shape[-1])
     
     preds_cut = predictions[..., :min_time]
@@ -330,9 +285,11 @@ def MAE(predictions, target):
     return np.mean(np.abs(preds_cut - target_cut), axis=(1, 2))
 
 def manage_normalization(presets, should_normalize):
+    """Aplica normalización o desnormalización a todos los parámetros del preset."""
     MIN_FREQ = 20
     MAX_FREQ = SAMPLE_RATE / 2
     
+    # Seleccionamos las funciones según la dirección
     fun = normalize if should_normalize else denormalize 
     funlog = log_normalize if should_normalize else log_denormalize
     return {
@@ -390,6 +347,7 @@ def normalize_preset(preset):
     return manage_normalization(preset, True)
 
 def pretty_print(obj, indent=0):
+    """Imprime un preset como tabla HTML en Jupyter o como texto indentado en cualquier otro entorno."""
     from IPython.display import display, HTML
 
     if isinstance(obj, dict) and indent == 0:
@@ -418,6 +376,7 @@ def pretty_print(obj, indent=0):
         )
         display(HTML(html))
     else:
+        # Fallback recursivo para entornos sin IPython
         spacing = "  " * indent
         if isinstance(obj, dict):
             print(f"{spacing}{{")
@@ -436,6 +395,7 @@ def pretty_print(obj, indent=0):
             print(f"{spacing}{obj}")
 
 def get_audio(audio_path, top_db=20):
+    """Carga un audio, recorta silencios y normaliza el RMS a 0.1."""
     y, _sr = librosa.load(audio_path, sr=SAMPLE_RATE)
     y = np.array(y, dtype=np.float64)
     y, _ = librosa.effects.trim(y, top_db=top_db)
@@ -449,10 +409,12 @@ def get_audio(audio_path, top_db=20):
 def __split_audio__(audio, prominence=0.01, win_size_ms=0.02):
     win_size = int(win_size_ms * SAMPLE_RATE)
 
+    # Envolvente de amplitud con ventana rectangular
     rectified_signal = np.abs(audio)
     window = np.ones(win_size) / win_size
     envelope = np.convolve(rectified_signal, window, mode='same')
 
+    # Buscamos mínimos locales como puntos de corte entre notas
     minimals, _ = find_peaks(-envelope, prominence=prominence, width=10, distance=2000)
     minimals = np.concatenate((np.array([0]), minimals))
 
