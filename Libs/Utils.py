@@ -115,29 +115,6 @@ def log_denormalize(x_norm, f_min, f_max):
     log_f = denormalize(x_norm, log_min, log_max)
     return 10 ** log_f  # Volvemos a Hz
 
-def get_freq_log(freq):
-    freq = np.maximum(freq, 0.1)
-    return np.log(freq)
-
-def plot_spectrum_linear(waveform, sample_rate, title="Espectro de Frecuencia"):
-    if waveform.ndim > 1:
-        waveform = waveform.flatten()
-
-    N = len(waveform)
-    fft_data = np.fft.rfft(waveform)
-    
-    magnitude = np.abs(fft_data)
-    
-    freqs = np.fft.rfftfreq(N, d=1/sample_rate)
-
-    plt.figure(figsize=(10, 6))
-    plt.plot(freqs, magnitude)
-    plt.title(title)
-    plt.xlabel('Frecuencia (Hz)')
-    plt.ylabel('Amplitud')
-    plt.grid(True, ls='-', alpha=0.5)
-    plt.xlim(0, sample_rate / 2)
-    plt.show()
 
 def load_parameters_file(name):
     with open(f'presets/{name}', 'r', encoding='utf-8') as file:
@@ -169,11 +146,6 @@ def load_parameters_file(name):
     base_q = []
     filter_type = []
     envelope_depth = []
-    cutoff_mod_depth = []
-
-    lfo1_rate = []
-
-    lfo2_rate = []
 
     envelope_decay = []
     envelope_attack = []
@@ -211,12 +183,6 @@ def load_parameters_file(name):
         base_cutoff_hz.append(preset['filter']['cutoff'])
         base_q.append(preset['filter']['q'])
         filter_type.append(preset['filter']['type'])
-        envelope_depth.append(preset['filter']['envelope_depth'])
-        cutoff_mod_depth.append(preset['filter']['cutoff_mod_depth'])
-
-        lfo1_rate.append(preset['lfo1']['rate'])
-
-        lfo2_rate.append(preset['lfo2']['rate'])
 
         envelope_decay.append(preset['amplitude_envelope']['decay'])
         envelope_attack.append(preset['amplitude_envelope']['attack'])
@@ -255,11 +221,6 @@ def load_parameters_file(name):
         'base_q': np.array(base_q),
         'filter_type': np.array(filter_type),
         'envelope_depth': np.array(envelope_depth),
-        'cutoff_mod_depth': np.array(cutoff_mod_depth),
-
-        'lfo1_rate': np.array(lfo1_rate),
-
-        'lfo2_rate': np.array(lfo2_rate),
 
         'envelope_decay': np.array(envelope_decay),
         'envelope_attack': np.array(envelope_attack),
@@ -303,23 +264,6 @@ def mel_spectrogram(audios, sr, n_fft=2048, hop_length=512, n_mels=128):
         
     return np.array(batch_results)
 
-def spectrogram(audios, n_fft=2048, hop_length=256):
-    batch_results = []
-
-    for y in audios:
-        S = librosa.stft(
-            y=y,
-            n_fft=n_fft,
-            hop_length=hop_length,
-            window='hann'
-        )
-
-        S_db = librosa.amplitude_to_db(np.abs(S), ref=1.0, top_db=80)
-        S_norm = (S_db + 80) / 80
-
-        batch_results.append(S_norm)
-        
-    return np.array(batch_results)
 
 def MAE(predictions, target):
     min_time = min(predictions.shape[-1], target.shape[-1])

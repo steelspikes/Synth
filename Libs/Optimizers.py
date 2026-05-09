@@ -88,19 +88,19 @@ def search_with_CMA(target_C, duration, x0, repeat_times=3, sigma0=0.08, popsize
             gen = 1
 
             while not es.stop():
-                solutions = np.array(es.ask())  # devuelve una lista de individuos
+                solutions = np.array(es.ask())
 
                 fitnesses = get_fitness(solutions)
 
-                best_idx = np.argmin(fitnesses)          # índice del mejor fitness
-                best_fitness = fitnesses[best_idx]       # fitness correspondiente
+                best_idx = np.argmin(fitnesses)
+                best_fitness = fitnesses[best_idx]
 
                 episodes.append(best_fitness)
 
                 if disp and gen % 100 == 0:
                     print("Gen", gen, "Mejor fitness:", best_fitness, "Sigma", es.sigma, "Restart", i + 1)
 
-                es.tell(solutions, fitnesses)  # pasar fitness al algoritmo
+                es.tell(solutions, fitnesses)
 
                 gen += 1
 
