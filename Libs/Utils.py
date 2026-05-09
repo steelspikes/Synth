@@ -390,22 +390,50 @@ def normalize_preset(preset):
     return manage_normalization(preset, True)
 
 def pretty_print(obj, indent=0):
-    spacing = "  " * indent
-    if isinstance(obj, dict):
-        print(f"{spacing}{{")
+    from IPython.display import display, HTML
+
+    if isinstance(obj, dict) and indent == 0:
+        rows = []
         for k, v in obj.items():
-            print(f"{spacing}  {k}: ", end="")
-            pretty_print(v, indent + 1)
-        print(f"{spacing}}}")
-    elif isinstance(obj, list) or isinstance(obj, np.ndarray):
-        if isinstance(obj, np.ndarray):
-            obj = obj.tolist()
-        print(f"{spacing}[")
-        for item in obj:
-            pretty_print(item, indent + 1)
-        print(f"{spacing}]")
+            if isinstance(v, np.ndarray):
+                if v.size == 1:
+                    val = f"{v.item():.6g}"
+                else:
+                    val = ", ".join(f"{x:.6g}" for x in v.tolist())
+            elif isinstance(v, (list, tuple)):
+                val = ", ".join(str(x) for x in v)
+            else:
+                val = str(v)
+            rows.append(f"<tr><td style='padding:4px 12px;font-weight:bold;'>{k}</td>"
+                        f"<td style='padding:4px 12px;'>{val}</td></tr>")
+
+        html = (
+            "<table style='border-collapse:collapse;font-family:monospace;'>"
+            "<thead><tr>"
+            "<th style='padding:4px 12px;border-bottom:2px solid #888;text-align:left;'>Parámetro</th>"
+            "<th style='padding:4px 12px;border-bottom:2px solid #888;text-align:left;'>Valor</th>"
+            "</tr></thead>"
+            "<tbody>" + "".join(rows) + "</tbody>"
+            "</table>"
+        )
+        display(HTML(html))
     else:
-        print(f"{spacing}{obj}")
+        spacing = "  " * indent
+        if isinstance(obj, dict):
+            print(f"{spacing}{{")
+            for k, v in obj.items():
+                print(f"{spacing}  {k}: ", end="")
+                pretty_print(v, indent + 1)
+            print(f"{spacing}}}")
+        elif isinstance(obj, list) or isinstance(obj, np.ndarray):
+            if isinstance(obj, np.ndarray):
+                obj = obj.tolist()
+            print(f"{spacing}[")
+            for item in obj:
+                pretty_print(item, indent + 1)
+            print(f"{spacing}]")
+        else:
+            print(f"{spacing}{obj}")
 
 def get_audio(audio_path, top_db=20):
     y, _sr = librosa.load(audio_path, sr=SAMPLE_RATE)
